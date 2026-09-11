@@ -8,11 +8,18 @@
 CC := gcc
 CXX := g++
 
+# --- Early OS Detection ---
+ifeq ($(OS),Windows_NT)
+    OS_NAME := windows
+else
+    OS_NAME := linux
+endif
+
 # --- 2. DIRECTORY CONFIGURATION ---
 SRC_DIR := src
 INC_DIR := inc
-OBJ_DIR := lib
-BIN_DIR := bin
+OBJ_DIR := lib/$(OS_NAME)
+BIN_DIR := bin/$(OS_NAME)
 APP_NAME := xloc
 
 # --- 3. FLAGS ---
@@ -31,17 +38,22 @@ OBJS := $(C_OBJS) $(CXX_OBJS)
 
 # --- 5. OS CONTROL AND COMMANDS ---
 ifeq ($(OS),Windows_NT)
+	TARGET_EXT := .exe
     SHELL := cmd.exe
     # /D: Disables auto run commands (isolation).
     # /C: runs the commands and closes the shell.
     .SHELLFLAGS := /D /C
-    TARGET := $(BIN_DIR)/$(APP_NAME).exe
+    TARGET := $(BIN_DIR)/$(APP_NAME)$(TARGET_EXT)
+
+	# for CMD I/O security change '/' symbols with '\' (e.g. lib\windows)
+    WIN_OBJ_DIR := $(subst /,\,$(OBJ_DIR))
+    WIN_BIN_DIR := $(subst /,\,$(BIN_DIR))
     
     # Instead of fragile '&' operator, the commands are parted.
-    MKDIR_OBJ := if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
-    MKDIR_BIN := if not exist $(BIN_DIR) mkdir $(BIN_DIR)
-    CLEAN_OBJ := if exist $(OBJ_DIR) rd /s /q $(OBJ_DIR)
-    CLEAN_BIN := if exist $(BIN_DIR) rd /s /q $(BIN_DIR)
+    MKDIR_OBJ := if not exist $(WIN_OBJ_DIR) mkdir $(WIN_OBJ_DIR)
+    MKDIR_BIN := if not exist $(WIN_BIN_DIR) mkdir $(WIN_BIN_DIR)
+    CLEAN_OBJ := if exist $(WIN_OBJ_DIR) rd /s /q $(WIN_OBJ_DIR)
+    CLEAN_BIN := if exist $(WIN_BIN_DIR) rd /s /q $(WIN_BIN_DIR)
     
     SCREEN_CLEAR := cls
     SLEEP_CMD := timeout /t 1 /nobreak > NUL
