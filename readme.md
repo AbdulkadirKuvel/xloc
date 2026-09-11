@@ -87,13 +87,13 @@ sudo cp xloc /usr/local/bin/
 
 ### TODOS to Myself for Future
 
-[ ] Implement Multithreading.
+- [ ] Implement Multithreading.
 
-[ ] Implement Memory maps.
+- [ ] Implement Memory maps.
 
-[ ] Create more accurate lexers
+- [ ] Create more accurate lexers
 
-[x] Realize C style single line comments can be multiline with the use of "\\", for example:
+- [x] Realize C style single line comments can be multiline with the use of "\\", for example:
 
 ```C
 int main() {
