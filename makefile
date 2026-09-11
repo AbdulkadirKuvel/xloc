@@ -25,7 +25,7 @@ APP_NAME := xloc
 # --- 3. FLAGS ---
 CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -g
 CXXFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g
-CXXFLAGS_RELEASE := -I$(INC_DIR) -std=c++23 -O3 -DNDEBUG -flto
+CXXFLAGS_RELEASE := -I$(INC_DIR) -std=c++23 -O3 -DNDEBUG -flto=auto
 LDFLAGS := -lstdc++exp
 
 # --- 4. FILE DETECTION ---
@@ -57,6 +57,8 @@ ifeq ($(OS),Windows_NT)
     
     SCREEN_CLEAR := cls
     SLEEP_CMD := timeout /t 1 /nobreak > NUL
+
+	UP_TO_DATE_MSG := @if "$(WAS_REBUILT)"=="" echo --- [INFO] Project Is Up To Date. Compile Stopped. ---
 else
     TARGET := $(BIN_DIR)/$(APP_NAME)
     
@@ -67,11 +69,12 @@ else
     
     SCREEN_CLEAR := clear
     SLEEP_CMD := sleep 1
+	UP_TO_DATE_MSG := @if [ -z "$(WAS_REBUILT)" ]; then echo "--- [INFO] Project Is Up To Date. Compile Stopped. ---"; fi
 endif
 
 # --- 6. COMPILING RULES ---
 compile: prepare $(TARGET)
-	@if "$(WAS_REBUILT)"=="" @echo --- [INFO] Project Is Up To Date. Compile Stopped. ---
+	$(UP_TO_DATE_MSG)
 
 prepare:
 	@echo --- [PREPARE] Checking Folders. ---
@@ -99,7 +102,7 @@ run: compile
 
 # --- Release Target Specific Variables ---
 release: CXXFLAGS := $(CXXFLAGS_RELEASE)
-release: CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -O3 -DNDEBUG -flto
+release: CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -O3 -DNDEBUG -flto=auto
 
 release: clean compile
 	@echo --- [RELEASE] Stripping Debug Symbols ---
