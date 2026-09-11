@@ -1,0 +1,53 @@
+name: C++ CI/CD Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Works with only "v1.0.0" format tags.
+
+jobs:
+  build-and-release:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            executable_name: xloc
+            asset_name: xloc-linux-amd64.tar.gz
+          - os: windows-latest
+            executable_name: xloc.exe
+            asset_name: xloc-windows-amd64.zip
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup GCC (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y g++-13 make
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+
+    - name: Build Project
+      run: |
+        make release
+
+    - name: Package Release (Linux)
+      if: runner.os == 'Linux'
+      run: tar -czvf ${{ matrix.asset_name }} ${{ matrix.executable_name }} config.json README.md LICENSE
+
+    - name: Package Release (Windows)
+      if: runner.os == 'Windows'
+      run: Compress-Archive -Path ${{ matrix.executable_name }}, config.json, README.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ matrix.asset_name }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

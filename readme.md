@@ -1,13 +1,15 @@
-# CodeCounter
+# xloc - a Code Counter Made in C++ for Pure Speed
 
 ![C++](https://img.shields.io/badge/C++-23-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-**CodeCounter** is aiming to be blazing-fast, modern C++ Command Line Interface (CLI) utility designed for analyzing and counting lines of code, comments, and blank lines across large-scale codebases. 
+**xloc** is aiming to be blazing-fast, modern C++ Command Line Interface (CLI) utility designed for analyzing and counting lines of code, comments, and blank lines across large-scale codebases. 
 
 Built with **systems programming** principles in mind, it leverages C++23 features to deliver maximum performance through zero-cost abstractions, memory safety, and highly optimized I/O operations.
 
-Please note that this tool is under active development and yet to publish it's mvp soon. The current code here works fine but lacks a lot of features.
+Please note that this tool is under development. The current code here works fine but lacks a lot of features.
+
+*Some of this readme is created by generative AI, sorry if it feels a bit boring.*
 
 ---
 
@@ -42,21 +44,56 @@ We are currently working on constantly pushing the boundaries of performance. Th
 
 ## 🛠️ Build Instructions
 
-### Prerequisites
+### 1. Use Executable
+
+If you do not want the source code, just: 
+1. Download the executable file provided to your desired location
+2. Add to your path if wanted
+3. Run by `xloc [\<commands\>]` 
+
+### 2. Build From Source
+
+If you prefer to compile the tool yourself from the source code:
+
+A. Clone the repository (or download the .zip)
+
+```Bash
+git clone https://github.com/AbdulkadirKuvel/xloc.git
+cd xloc
+```
+B. Build the project
+
+For Linux and macOS:
+```Bash
+make
+```
+For Windows (MinGW):
+```Bash
+mingw32-make
+```
+
+C. The compiled xloc executable will be generated in the bin folder. You can now run it locally or move it to a directory included in your system's PATH.
+
+Optional: Move to a PATH directory (Linux/macOS example)
+
+```Bash
+sudo cp xloc /usr/local/bin/
+```
+#### Prerequisites
 
 * A C++23 compatible compiler (GCC 13+, Clang 16+, or MSVC 19.38+)
 
-* This part will be updated when MVP is released
+* Build System: make (GNU Make) installed. (Use mingw32-make on Windows). 
 
-### TODOS
+### TODOS to Myself for Future
 
-1. Implement Multithreading.
+[ ] Implement Multithreading.
 
-2. Implement Memory maps.
+[ ] Implement Memory maps.
 
-3. Create more accurate lexers
+[ ] Create more accurate lexers
 
-4. Realize C style single line comments can be multiline with the use of "\\", for example:
+[x] Realize C style single line comments can be multiline with the use of "\\", for example:
 
 ```C
 int main() {

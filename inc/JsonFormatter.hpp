@@ -1,4 +1,3 @@
-// TODO: Feature
 #include <IReportFormatter.hpp>
 #include <ostream>
 #include <types.hpp>

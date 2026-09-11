@@ -32,11 +32,10 @@ namespace parser
                 fs::path config_path = argv[i + 1];
                 config_reader::apply_json_config(config_path, config);
 
-                // Eğer JSON okurken bir exception/hata state'i set edildiyse anında çık
                 if (config.error_requested)
                     return config;
 
-                break; // Sadece bir tane config dosyası kabul ediyoruz, bulduktan sonra döngüyü kırabiliriz.
+                break;
             }
         }
 

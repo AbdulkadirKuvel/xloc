@@ -18,6 +18,7 @@ APP_NAME := xloc
 # --- 3. FLAGS ---
 CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -g
 CXXFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g
+CXXFLAGS_RELEASE := -I$(INC_DIR) -std=c++23 -O3 -DNDEBUG -flto
 LDFLAGS := -lstdc++exp
 
 # --- 4. FILE DETECTION ---
@@ -84,6 +85,15 @@ run: compile
 	@$(TARGET) $(ARGS)
 	@echo --- [SUCCESS] End Execution ---
 
+# --- Release Target Specific Variables ---
+release: CXXFLAGS := $(CXXFLAGS_RELEASE)
+release: CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -O3 -DNDEBUG -flto
+
+release: clean compile
+	@echo --- [RELEASE] Stripping Debug Symbols ---
+	@strip $(TARGET)
+	@echo --- [SUCCESS] Release Build Completed: $(TARGET) ---
+
 # --- 7. CLEANING ---
 clean:
 	@echo --- [CLEAN] Resetting Project ---
@@ -93,4 +103,4 @@ clean:
 	@$(SLEEP_CMD) 
 	@$(SCREEN_CLEAR)
 
-.PHONY: compile prepare run clean
+.PHONY: compile prepare run release clean

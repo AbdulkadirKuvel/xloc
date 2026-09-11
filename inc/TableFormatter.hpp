@@ -1,5 +1,3 @@
-// Output to console
-
 #include <IReportFormatter.hpp>
 #include <print>
 #include <types.hpp>
