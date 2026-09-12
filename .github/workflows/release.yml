@@ -37,11 +37,11 @@ jobs:
 
     - name: Package Release (Linux)
       if: runner.os == 'Linux'
-      run: tar -czvf ${{ matrix.asset_name }} ${{ matrix.executable_name }} config.json README.md LICENSE
+      run: tar -czvf ${{ matrix.asset_name }} ${{ matrix.executable_name }} config.json readme.md LICENSE
 
     - name: Package Release (Windows)
       if: runner.os == 'Windows'
-      run: Compress-Archive -Path ${{ matrix.executable_name }}, config.json, README.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
+      run: Compress-Archive -Path ${{ matrix.executable_name }}, config.json, readme.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
 
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v1
