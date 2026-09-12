@@ -112,41 +112,47 @@ namespace scanner
             if (ec)
                 continue;
 
-            for (const auto &entry : it)
+            const auto endit = fs::end(it);
+
+            while (it != endit && !ec)
             {
                 std::error_code entry_ec;
+                const auto &entry = *it;
 
-                if (entry.is_symlink(entry_ec))
+                if (entry.is_symlink(entry_ec) || entry_ec)
+                {
+                    it.increment(ec);
+                    if (ec)
+                        ec.clear();
                     continue;
+                }
 
                 bool is_dir = entry.is_directory(entry_ec);
-                if (entry_ec)
-                    continue;
-
-                const auto &path = entry.path();
-                const auto filename = path.filename();
-
-                if (is_dir)
+                if (!entry_ec && is_dir)
                 {
-                    if (!internal::in_blacklist(filename, config.blacklist) &&
-                        !internal::in_blacklist(path, config.blacklist))
+                    const auto &dir_path = entry.path();
+                    if (!internal::in_blacklist(dir_path, config.blacklist))
                     {
-                        directories_to_scan.push_back(path);
+                        directories_to_scan.push_back(dir_path);
                     }
                 }
-                else if (entry.is_regular_file(entry_ec))
+                else if (!entry_ec && entry.is_regular_file(entry_ec))
                 {
-                    const auto ext = path.extension();
-                    if (!internal::in_blacklist(filename, config.blacklist) &&
-                        (internal::in_whitelist(ext, config.whitelist) ||
-                         internal::in_whitelist(filename, config.whitelist)))
+                    const auto &file_path = entry.path();
+                    const auto &ext = file_path.extension();
+                    if (!internal::in_blacklist(file_path, config.blacklist) &&
+                        (internal::in_whitelist(file_path, config.whitelist) || 
+                         internal::in_whitelist(ext, config.whitelist)))
                     {
-                        paths.push_back(path);
+                        paths.push_back(file_path);
                     }
                 }
+
+                it.increment(ec);
+                if (ec)
+                    ec.clear();
             }
         }
         return paths;
     }
-
 }
