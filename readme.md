@@ -89,10 +89,14 @@ sudo cp xloc /usr/local/bin/
 ### TODOS to Myself for Future
 
 - [ ] Implement Multithreading.
+    - Improves speed.
 
 - [ ] Implement Memory maps.
+    - Improves speed.
+    - Allows reading bigger sized files.
 
-- [ ] Create more accurate lexers
+- [ ] Seperate Docstring From Comments 
+    - Creates more accurate lexers.
 
 - [x] Realize C style single line comments can be multiline with the use of "\\", for example:
 
