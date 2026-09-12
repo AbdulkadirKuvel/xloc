@@ -50,7 +50,9 @@ If you do not want the source code, just:
 
 1. Download the executable file provided to your desired location
 2. Add to your path if wanted
-3. Run by `xloc [<commands>]` 
+3. Run by `xloc [<commands>]`
+
+To see all commands, type in `xloc --help`
 
 ### B. Build From Source
 
