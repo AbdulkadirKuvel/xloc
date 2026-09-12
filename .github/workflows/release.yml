@@ -13,10 +13,10 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            executable_name: xloc
+            executable_name: bin/linux/xloc
             asset_name: xloc-linux-amd64.tar.gz
           - os: windows-latest
-            executable_name: xloc.exe
+            executable_name: bin/windows/xloc.exe
             asset_name: xloc-windows-amd64.zip
 
     steps:
