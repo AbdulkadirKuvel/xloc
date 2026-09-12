@@ -22,7 +22,9 @@ namespace color
     constexpr std::string_view magenta = "\033[35m";
     constexpr std::string_view cyan = "\033[36m";
     constexpr std::string_view white = "\033[37m";
+    constexpr std::string_view grey = "\x1b[2m";
 
+    constexpr std::string_view bold_white = "\x1b[1m";
     constexpr std::string_view bold_red = "\033[1;31m";
     constexpr std::string_view bold_green = "\033[1;32m";
     constexpr std::string_view bold_yellow = "\033[1;33m";
@@ -33,6 +35,7 @@ namespace formatter
 {
     void report_files_stats(std::map<std::string, types::FileStats>, types::Config);
     void print_help();
+    void print_version(std::string_view);
     void print_error(types::Error);
     void print_info(std::string);
 }

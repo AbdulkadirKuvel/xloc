@@ -4,12 +4,10 @@
 #include <parser.hpp>
 #include <IReportFormatter.hpp>
 #include <TableFormatter.hpp>
-#include <JsonFormatter.hpp> // TODO
+#include <JsonFormatter.hpp>
 #include <filesystem>
 #include <iostream>
 #include <string>
-
-// namespace fs = std::filesystem;
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +17,11 @@ int main(int argc, char *argv[])
     if (config.help_requested)
     {
         formatter::print_help();
+        exit(0);
+    }
+    else if (config.version_requested)
+    {
+        formatter::print_version(types::version);
         exit(0);
     }
     else if (config.error_requested)

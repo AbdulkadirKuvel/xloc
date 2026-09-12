@@ -7,6 +7,7 @@ namespace fs = std::filesystem;
 
 namespace types
 {
+    constexpr std::string_view version = "v0.1.0.5";
     struct Error
     {
         std::string title = "";
@@ -15,9 +16,11 @@ namespace types
 
     struct Config
     {
+        
         // Initial Configuration
         bool help_requested = false;
         bool error_requested = false;
+        bool version_requested = false;
         bool single_file = false;
         bool recursive = false;
         bool json_form = false;

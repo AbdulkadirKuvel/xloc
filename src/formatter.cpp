@@ -19,19 +19,20 @@ namespace formatter
         if (config.json_form)
             report_formatter = std::make_unique<JsonFormatter>();
         // else if (config.md_form)
-            // report_formatter = std::make_unique<MarkdownFormatter>(); // TODO: Implement this.
+        // report_formatter = std::make_unique<MarkdownFormatter>(); // TODO: Implement this.
         else
             report_formatter = std::make_unique<TableFormatter>();
 
-        
         // Output point
         if (!config.output_path.empty())
         {
             std::ofstream file(config.output_path);
-            if (file.is_open()) {
+            if (file.is_open())
+            {
                 report_formatter->format(file, stats);
             }
-            else {
+            else
+            {
                 types::Error error;
                 error.title = "File Error";
                 error.message = "Could not create the output file.";
@@ -62,6 +63,11 @@ namespace formatter
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -o │ --output      │ <outputpath> │ log into a file               │");
         std::println("└────┴───────────────┴──────────────┴───────────────────────────────┘");
+    }
+
+    void print_version(std::string_view version)
+    {
+        std::println("{} xloc {} version: {}{}{}", color::bold_yellow, color::reset, color::bold_white, version, color::reset);
     }
 
     void print_error(types::Error error)

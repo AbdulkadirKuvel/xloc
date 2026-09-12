@@ -19,6 +19,11 @@ namespace parser
                 config.help_requested = true;
                 return config;
             }
+            else if (arg == "-v" || arg == "--version")
+            {
+                config.version_requested = true;
+                return config;
+            }
             else if (arg == "-c" || arg == "--config")
             {
                 if (i + 1 >= argc || argv[i + 1][0] == '-')
