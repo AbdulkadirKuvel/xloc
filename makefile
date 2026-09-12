@@ -115,7 +115,7 @@ clean:
 	@$(CLEAN_OBJ)
 	@$(CLEAN_BIN)
 	@echo --- [SUCCESS] Reset Done ---
-	@$(SLEEP_CMD) 
-	@$(SCREEN_CLEAR)
+	@-$(SLEEP_CMD) 
+	@-$(SCREEN_CLEAR)
 
 .PHONY: compile prepare run release clean
