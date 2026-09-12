@@ -55,11 +55,13 @@ namespace formatter
         std::println("├────┬───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -h │ --help        │ none         │ show help                     │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
+        std::println("│ -v │ --version     │ none         │ print current version         │");
+        std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -r │ --recursive   │ none         │ recursive search              │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -j │ --json        │ none         │ format stats as json          │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
-        std::println("│ -c │ --config      │ <filepath>   │ use config file               │");
+        std::println("│ -c │ --config      │ <filepath>   │ use config file (json)        │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -o │ --output      │ <outputpath> │ log into a file               │");
         std::println("└────┴───────────────┴──────────────┴───────────────────────────────┘");
