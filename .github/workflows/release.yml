@@ -13,10 +13,12 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            executable_name: bin/linux/xloc
+            build_path: bin/linux/xloc
+            release_exe: xloc-linux
             asset_name: xloc-linux-amd64.tar.gz
           - os: windows-latest
-            executable_name: bin/windows/xloc.exe
+            build_path: bin/windows/xloc.exe
+            release_exe: xloc-windows.exe
             asset_name: xloc-windows-amd64.zip
 
     steps:
@@ -37,11 +39,15 @@ jobs:
 
     - name: Package Release (Linux)
       if: runner.os == 'Linux'
-      run: tar -czvf ${{ matrix.asset_name }} ${{ matrix.executable_name }} config.json readme.md LICENSE
+      run: |
+        cp ${{ matrix.build_path }} ${{ matrix.release_exe }}
+        tar -czvf ${{ matrix.asset_name }} ${{ matrix.release_exe }} config.json readme.md LICENSE
 
     - name: Package Release (Windows)
       if: runner.os == 'Windows'
-      run: Compress-Archive -Path ${{ matrix.executable_name }}, config.json, readme.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
+      run: |
+        Copy-Item -Path ${{ matrix.build_path }} -Destination ${{ matrix.release_exe }}
+        Compress-Archive -Path ${{ matrix.release_exe }}, config.json, readme.md, LICENSE -DestinationPath ${{ matrix.asset_name }}
 
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v1
