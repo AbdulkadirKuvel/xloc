@@ -1,4 +1,7 @@
+#pragma once
+
 #include <IReportFormatter.hpp>
+#include <ext/json.hpp>
 #include <ostream>
 #include <types.hpp>
 
@@ -7,27 +10,25 @@ class JsonFormatter : public IReportFormatter
 public:
     void format(std::ostream &os, const std::map<std::string, types::FileStats> &stats) const override
     {
-        std::println(os, "{{");
-        std::println(os, "  \"files\": [");
+        using json = nlohmann::json;
 
-        size_t index = 0;
-        const size_t total_items = stats.size();
+        json root = json::object();
+        json files_array = json::array();
 
         for (const auto& [ext, stat] : stats)
         {
-            const bool is_last = (++index == total_items);
-
-            std::println(os, "    {{");
-            std::println(os, "    \"extension\": \"{}\",",ext);
-            std::println(os, "    \"file_count\": \"{}\",",stat.file_count);
-            std::println(os, "    \"total_lines\": \"{}\",",stat.total_line);
-            std::println(os, "    \"code_lines\": \"{}\",",stat.code_line);
-            std::println(os, "    \"comment_lines\": \"{}\",",stat.comment_line);
-            std::println(os, "    \"blank_lines\": \"{}\"",stat.blank_line);
-            std::println(os, "    }}{}", is_last ? "" : ",");
+            files_array.push_back({
+                {"extension", ext},
+                {"file_count", stat.file_count},
+                {"total_lines", stat.total_line},
+                {"code_lines", stat.code_line},
+                {"comment_lines", stat.comment_line},
+                {"blank_lines", stat.blank_line}
+            });
         }
-        
-        std::println(os, "  ]");
-        std::println(os, "}}");
+
+        root["files"] = std::move(files_array);
+
+        os << root.dump(4) << '\n';
     }
 };
