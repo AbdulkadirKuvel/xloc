@@ -44,24 +44,25 @@ We are currently working on constantly pushing the boundaries of performance. Th
 
 ## 🛠️ Build Instructions
 
-### 1. Use Executable
+### A. Use Executable
 
 If you do not want the source code, just: 
+
 1. Download the executable file provided to your desired location
 2. Add to your path if wanted
-3. Run by `xloc [\<commands\>]` 
+3. Run by `xloc [<commands>]` 
 
-### 2. Build From Source
+### B. Build From Source
 
 If you prefer to compile the tool yourself from the source code:
 
-A. Clone the repository (or download the .zip)
+1. Clone the repository (or download the .zip)
 
 ```Bash
 git clone https://github.com/AbdulkadirKuvel/xloc.git
 cd xloc
 ```
-B. Build the project
+2. Build the project
 
 For Linux and macOS:
 ```Bash
@@ -72,7 +73,7 @@ For Windows (MinGW):
 mingw32-make
 ```
 
-C. The compiled xloc executable will be generated in the bin folder. You can now run it locally or move it to a directory included in your system's PATH.
+3. The compiled xloc executable will be generated in the bin folder. You can now run it locally or move it to a directory included in your system's PATH.
 
 Optional: Move to a PATH directory (Linux/macOS example)
 
