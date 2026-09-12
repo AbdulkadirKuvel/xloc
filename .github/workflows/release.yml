@@ -26,9 +26,10 @@ jobs:
     - name: Setup GCC (Linux)
       if: runner.os == 'Linux'
       run: |
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt update
-        sudo apt install -y g++-13 make
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+        sudo apt install -y g++-14 make
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
 
     - name: Build Project
       run: |
