@@ -53,7 +53,10 @@ namespace parser
 
             else if (arg == "-j" || arg == "--json")
                 config.json_form = true;
-
+            
+            else if (arg == "-m" || arg == "--markdown")
+                config.md_form = true;
+            
             else if (arg == "-c" || arg == "--config")
             {
                 i++;

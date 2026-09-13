@@ -1,5 +1,6 @@
 #include <IReportFormatter.hpp>
 #include <JsonFormatter.hpp>
+#include <MarkdownFormatter.hpp>
 #include <TableFormatter.hpp>
 #include <formatter.hpp>
 #include <iostream>
@@ -18,8 +19,8 @@ namespace formatter
         // Output form
         if (config.json_form)
             report_formatter = std::make_unique<JsonFormatter>();
-        // else if (config.md_form)
-        // report_formatter = std::make_unique<MarkdownFormatter>(); // TODO: Implement this.
+        else if (config.md_form)
+            report_formatter = std::make_unique<MarkdownFormatter>();
         else
             report_formatter = std::make_unique<TableFormatter>();
 
@@ -60,6 +61,8 @@ namespace formatter
         std::println("│ -r │ --recursive   │ none         │ recursive search              │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -j │ --json        │ none         │ format stats as json          │");
+        std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
+        std::println("│ -m │ --markdown    │ none         │ format stats as markdown      │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -c │ --config      │ <filepath>   │ use config file (json)        │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
