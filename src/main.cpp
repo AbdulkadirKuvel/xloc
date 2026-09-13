@@ -8,37 +8,44 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <benchmark.hpp>
 
 int main(int argc, char *argv[])
 {
-    fs::path path;
-    auto config = parser::parse_commands(argc, argv);
+    // clang-format off
+    const auto config = benchmark::measure_step("reading configuration", [&]
+    { 
+        return parser::parse_commands(argc, argv); 
+    });
+    // clang-format on
 
     if (config.help_requested)
     {
         formatter::print_help();
-        exit(0);
+        return 0;
     }
     else if (config.version_requested)
     {
         formatter::print_version(types::version);
-        exit(0);
+        return 0;
     }
     else if (config.error_requested)
     {
         formatter::print_error(config.error_info);
-        exit(0);
+        return 0;
     }
 
-    formatter::print_info("Completed reading configuration.");
-
-    std::vector<std::filesystem::path> paths;
-
-    paths = scanner::scan(config);
-
-    formatter::print_info("Completed finding files.");
-
-    auto stats = collector::gather_files_stats(paths);
+    // clang-format off
+    const auto paths = benchmark::measure_step("scanning files", [&]
+    { 
+        return scanner::scan(config); 
+    });
+    
+    const auto stats = benchmark::measure_step("analyzing files", [&]
+    {
+        return collector::gather_files_stats(paths);
+    });
+    // clang-format on
 
     formatter::report_files_stats(stats, config);
 
