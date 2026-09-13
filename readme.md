@@ -141,6 +141,9 @@ A configuration file can only be a json file.
 - [ ] Seperate Docstring From Comments 
     - Creates more accurate lexers.
 
+- [x] Implement Benchmarking
+    - Show how much time consumed for each step.
+
 - [x] Realize C style single line comments can be multiline with the use of "\\", for example:
 
 ```C
@@ -154,3 +157,4 @@ int main() {
 }
 
 ```
+- [ ] Fix the thing above.
