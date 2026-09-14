@@ -1,0 +1,30 @@
+changelog:
+  exclude:
+    labels:
+      - ignore
+    authors:
+      - octocat
+  categories:
+    - title: "🚀 Features & Enhancements"
+      labels:
+        - feature
+        - enhancement
+      keywords:
+        - feat
+        - feature
+    - title: "🐛 Bug Fixes & Stability"
+      labels:
+        - fix
+        - bug
+      keywords:
+        - fix
+        - bug
+    - title: "⚡ Performance Improvements"
+      keywords:
+        - perf
+    - title: "🔧 Build System & CI/CD"
+      keywords:
+        - ci
+        - build
+        - chore
+        - refactor
