@@ -2,28 +2,17 @@
 #include <string>
 #include <print>
 #include <unordered_set>
+#include <formatter.hpp>
 namespace scanner
 {
     namespace internal
     {
-        bool in_whitelist(const fs::path &path, const std::unordered_set<std::string> &whitelist)
+        [[nodiscard]] inline bool in_list(const std::string &item, const std::unordered_set<std::string> &list) noexcept
         {
-            const std::string ext = path.extension().string();
-            if (!ext.empty() && whitelist.contains(ext))
-                return true;
-
-            const std::string filename = path.filename().string();
-            return whitelist.contains(filename);
-        }
-
-        bool in_blacklist(const fs::path &path, const std::unordered_set<std::string> &blacklist)
-        {
-            const std::string filename = path.filename().string();
-            const std::string ext = path.extension().string();
-
-            return blacklist.contains(filename) || (!ext.empty() && blacklist.contains(ext));
+            return list.find(item) != list.end();
         }
     }
+    
     std::vector<fs::path> scan(types::Config config)
     {
         if (config.single_file)
@@ -71,14 +60,14 @@ namespace scanner
             if (!entry_ec && is_reg)
             {
                 const auto &current_path = entry.path();
-                const auto ext = current_path.extension();
-                const auto filename = current_path.filename();
+                const auto ext = current_path.extension().string();
+                const auto filename = current_path.filename().string();
 
                 if (it->is_regular_file(ec))
                 {
-                    if (!internal::in_blacklist(filename, config.blacklist) &&
-                        (internal::in_whitelist(ext, config.whitelist) ||
-                         internal::in_whitelist(filename, config.whitelist)))
+                    if (!internal::in_list(filename, config.blacklist) &&
+                        (internal::in_list(ext, config.whitelist) ||
+                         internal::in_list(filename, config.whitelist)))
                     {
                         paths.push_back(current_path);
                     }
@@ -93,64 +82,83 @@ namespace scanner
         return paths;
     }
 
+    inline bool should_ignore_entry(const fs::path &path, const types::Config &config)
+    {
+        const std::string filename = path.filename().string();
+
+        if (filename.empty())
+            return false;
+
+        if (filename.front() == '.' ||
+            filename == "$RECYCLE.BIN" ||
+            filename == "System Volume Information")
+        {
+            return true;
+        }
+
+        return internal::in_list(filename, config.blacklist);
+    }
+
     std::vector<fs::path> list_files_recursive(const fs::path &root, const types::Config &config)
     {
         std::vector<fs::path> paths;
-        std::vector<fs::path> directories_to_scan;
-        directories_to_scan.push_back(root);
+        std::error_code ec;
 
-        while (!directories_to_scan.empty())
+        constexpr auto options = fs::directory_options::skip_permission_denied;
+        fs::recursive_directory_iterator it(root, options, ec);
+        fs::recursive_directory_iterator end;
+
+        if (ec)
         {
-            fs::path current_dir = directories_to_scan.back();
-            directories_to_scan.pop_back();
+            formatter::print_warning(
+                types::Error{
+                    .title = "Root Inaccessable",
+                    .message = "Could not access the root folder."},
+                config);
 
-            std::error_code ec;
+            return paths;
+        }
 
-            auto options = fs::directory_options::skip_permission_denied;
-            auto it = fs::directory_iterator(current_dir, options, ec);
+        while (it != end)
+        {
+            const auto &entry = *it;
+            const auto &path = entry.path();
 
-            if (ec)
-                continue;
-
-            const auto endit = fs::end(it);
-
-            while (it != endit && !ec)
+            if (should_ignore_entry(path, config))
             {
-                std::error_code entry_ec;
-                const auto &entry = *it;
-
-                if (entry.is_symlink(entry_ec) || entry_ec)
+                if (entry.is_directory())
                 {
-                    it.increment(ec);
-                    if (ec)
-                        ec.clear();
-                    continue;
-                }
-
-                bool is_dir = entry.is_directory(entry_ec);
-                if (!entry_ec && is_dir)
-                {
-                    const auto &dir_path = entry.path();
-                    if (!internal::in_blacklist(dir_path, config.blacklist))
-                    {
-                        directories_to_scan.push_back(dir_path);
-                    }
-                }
-                else if (!entry_ec && entry.is_regular_file(entry_ec))
-                {
-                    const auto &file_path = entry.path();
-                    const auto &ext = file_path.extension();
-                    if (!internal::in_blacklist(file_path, config.blacklist) &&
-                        (internal::in_whitelist(file_path, config.whitelist) || 
-                         internal::in_whitelist(ext, config.whitelist)))
-                    {
-                        paths.push_back(file_path);
-                    }
+                    it.disable_recursion_pending();
                 }
 
                 it.increment(ec);
                 if (ec)
                     ec.clear();
+                continue;
+            }
+
+            if (entry.is_regular_file(ec))
+            {
+                const auto &filename = path.filename().string();
+                const auto &ext = path.extension().string();
+
+                if ((internal::in_list(filename, config.whitelist) ||
+                     internal::in_list(ext, config.whitelist)))
+                {
+                    paths.push_back(path);
+                }
+            }
+
+            it.increment(ec);
+            if (ec)
+            {
+                formatter::print_warning(
+                    types::Error{
+                        .title = "Filesystem Iteration Warning",
+                        .message = "Error reading entry. Possibility: ERROR_SHARING_VIOLATION or broken symlink."},
+                    config);
+
+                ec.clear();
             }
         }
         return paths;

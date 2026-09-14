@@ -1,23 +1,16 @@
+#include <parser.hpp>
+#include <formatter.hpp>
+#include <benchmark.hpp>
 #include <scanner.hpp>
 #include <collector.hpp>
-#include <formatter.hpp>
-#include <parser.hpp>
-#include <IReportFormatter.hpp>
-#include <TableFormatter.hpp>
-#include <JsonFormatter.hpp>
+
 #include <filesystem>
 #include <iostream>
 #include <string>
-#include <benchmark.hpp>
 
 int main(int argc, char *argv[])
 {
-    // clang-format off
-    const auto config = benchmark::measure_step("reading configuration", [&]
-    { 
-        return parser::parse_commands(argc, argv); 
-    });
-    // clang-format on
+    const auto &config = parser::parse_commands(argc, argv); 
 
     if (config.help_requested)
     {
@@ -26,22 +19,22 @@ int main(int argc, char *argv[])
     }
     else if (config.version_requested)
     {
-        formatter::print_version(types::version);
+        formatter::print_version(config);
         return 0;
     }
     else if (config.error_requested)
     {
-        formatter::print_error(config.error_info);
+        formatter::print_error(config.error_info, config);
         return 0;
     }
 
     // clang-format off
-    const auto paths = benchmark::measure_step("scanning files", [&]
+    const auto paths = benchmark::measure_step("scanning files", config, [&]
     { 
         return scanner::scan(config); 
     });
     
-    const auto stats = benchmark::measure_step("analyzing files", [&]
+    const auto stats = benchmark::measure_step("analyzing files", config, [&]
     {
         return collector::gather_files_stats(paths);
     });

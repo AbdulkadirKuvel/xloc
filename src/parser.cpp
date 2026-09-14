@@ -57,6 +57,9 @@ namespace parser
             else if (arg == "-m" || arg == "--markdown")
                 config.md_form = true;
             
+            else if (arg == "-q" || arg == "--quiet")
+                config.quiet = true; // TODO: This feat has not been implemented.
+            
             else if (arg == "-c" || arg == "--config")
             {
                 i++;
@@ -92,6 +95,8 @@ namespace parser
                 config.path = target;
             }
         }
+
+        config.enable_color = utils::supports_color();
         return config;
     }
 }

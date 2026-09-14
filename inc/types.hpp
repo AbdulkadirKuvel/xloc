@@ -16,8 +16,10 @@ namespace types
 
     struct Config
     {
-        
         // Initial Configuration
+
+        bool enable_color = true;
+        
         bool help_requested = false;
         bool error_requested = false;
         bool version_requested = false;
@@ -26,6 +28,8 @@ namespace types
         bool json_form = false;
         bool md_form = false;
         bool table_form = true;
+
+        bool quiet = false;
 
         // The files that app will scan.
         std::unordered_set<std::string> whitelist = {

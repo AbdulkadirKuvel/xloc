@@ -33,11 +33,12 @@ namespace color
 
 namespace formatter
 {
-    void report_files_stats(std::map<std::string, types::FileStats>, types::Config);
+    void report_files_stats(const std::map<std::string, types::FileStats> &, const types::Config &);
     void print_help();
-    void print_version(std::string_view);
-    void print_error(types::Error);
-    void print_info(std::string);
+    void print_version(const types::Config &);
+    void print_error(types::Error, const types::Config &);
+    void print_warning(types::Error, const types::Config &);
+    void print_info(std::string, const types::Config &);
 }
 
 #endif

@@ -12,7 +12,19 @@
 
 namespace formatter
 {
-    void report_files_stats(std::map<std::string, types::FileStats> stats, types::Config config)
+    namespace
+    {
+        /**
+         * @brief Returns either ANSI escape sequence or empty string depending on the enable_color variable
+         * @return ansi_code | ""
+         */
+        [[nodiscard]] constexpr std::string_view color_code(std::string_view ansi_code, bool enable_color) noexcept
+        {
+            return enable_color ? ansi_code : "";
+        }
+    }
+
+    void report_files_stats(const std::map<std::string, types::FileStats> &stats, const types::Config &config)
     {
         std::unique_ptr<IReportFormatter> report_formatter;
 
@@ -70,19 +82,44 @@ namespace formatter
         std::println("└────┴───────────────┴──────────────┴───────────────────────────────┘");
     }
 
-    void print_version(std::string_view version)
+    void print_version(const types::Config &config)
     {
-        std::println("{} xloc {} version: {}{}{}", color::bold_yellow, color::reset, color::bold_white, version, color::reset);
+        const auto yellow = color_code(color::bold_yellow, config.enable_color);
+        const auto white = color_code(color::bold_white, config.enable_color);
+        const auto reset = color_code(color::reset, config.enable_color);
+
+        std::println("{}xloc{} version: {}{}{}", yellow, reset, white, types::version, reset);
     }
 
-    void print_error(types::Error error)
+    void print_error(types::Error error, const types::Config &config)
     {
-        std::println("{}{}{}", color::bold_red, error.title, color::reset);
-        std::println("{}{}{}", color::red, error.message, color::reset);
+        const auto bold_red = color_code(color::bold_red, config.enable_color);
+        const auto red = color_code(color::red, config.enable_color);
+        const auto reset = color_code(color::reset, config.enable_color);
+
+        std::println("{}{}{}", bold_red, error.title, reset);
+        std::println("{}{}{}", red, error.message, reset);
     }
 
-    void print_info(std::string message)
+    void print_warning(types::Error error, const types::Config &config)
     {
-        std::println("{}{}{}", color::blue, message, color::reset);
+        const auto bold_yellow = color_code(color::bold_white, config.enable_color);
+        const auto yellow = color_code(color::yellow, config.enable_color);
+        const auto reset = color_code(color::reset, config.enable_color);
+
+        std::println("{}{}{}", bold_yellow, error.title, reset);
+        std::println("{}{}{}", yellow, error.message, reset);
+    }
+
+    void print_info(std::string message, const types::Config &config)
+    {
+        if (config.quiet)
+        {
+            return;
+        }
+        const auto blue = color_code(color::blue, config.enable_color);
+        const auto reset = color_code(color::reset, config.enable_color);
+
+        std::println("{}{}{}", blue, message, reset);
     }
 }
