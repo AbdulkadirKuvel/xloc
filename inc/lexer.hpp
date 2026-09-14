@@ -22,7 +22,7 @@ namespace lexer
     };
 
     
-    inline LineMetrics analyze_lines(std::string_view);
+    [[nodiscard]] inline LineMetrics analyze_lines(std::string_view);
     
     void file_analyzer_c(std::string_view, types::FileStats &);
     void file_analyzer_py(std::string_view, types::FileStats &);

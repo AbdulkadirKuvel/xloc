@@ -60,7 +60,7 @@ namespace utils
         return sv;
     }
 
-    std::string read_file_into_buffer(const fs::path &, std::error_code &);
+    [[nodiscard]] std::string read_file_into_buffer(const fs::path &, std::error_code &);
 }
 
 #endif

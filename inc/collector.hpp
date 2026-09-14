@@ -52,7 +52,7 @@ namespace collector
 
     router get_analyzer(const std::string);
 
-    std::map<std::string, types::FileStats> gather_files_stats(std::vector<fs::path>);
+    [[nodiscard]] std::map<std::string, types::FileStats> gather_files_stats(std::vector<fs::path>);
 
 }
 

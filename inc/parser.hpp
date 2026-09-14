@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 
 namespace parser
 {
-    types::Config parse_commands(int argc, char *argv[]);
+    [[nodiscard]] types::Config parse_commands(int argc, char *argv[]);
 }
 
 #endif
