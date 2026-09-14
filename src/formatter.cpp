@@ -70,6 +70,8 @@ namespace formatter
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -v │ --version     │ none         │ print current version         │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
+        std::println("│ -n │ --no-color    │ none         │ do not show color for output  │");
+        std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -r │ --recursive   │ none         │ recursive search              │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -j │ --json        │ none         │ format stats as json          │");

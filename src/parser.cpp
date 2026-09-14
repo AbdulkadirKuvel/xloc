@@ -44,6 +44,8 @@ namespace parser
             }
         }
 
+        config.enable_color = utils::supports_color();
+
         for (int i = 1; i < argc; ++i)
         {
             std::string_view arg = argv[i];
@@ -58,7 +60,10 @@ namespace parser
                 config.md_form = true;
             
             else if (arg == "-q" || arg == "--quiet")
-                config.quiet = true; // TODO: This feat has not been implemented.
+                config.quiet = true;
+
+            else if (arg == "-n" || arg == "--no-color")
+                config.enable_color= false;
             
             else if (arg == "-c" || arg == "--config")
             {
@@ -96,7 +101,6 @@ namespace parser
             }
         }
 
-        config.enable_color = utils::supports_color();
         return config;
     }
 }
