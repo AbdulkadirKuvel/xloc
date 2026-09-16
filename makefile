@@ -1,94 +1,99 @@
 # =========================================
-# Date: 23.02.2026
+# Date: 2026
 # CROSS-PLATFORM MAKEFILE (C11 & C23)
-# Written by: Gemini 3.1 Pro & Abdulkadir 
+# Refactored for Robust OS Detection & CI/CD
 # =========================================
 
 export MAKE
 
-# --- 1. COMPILER SELECTION ---
-CC := gcc
-CXX := g++
-
-# --- Early OS Detection ---
+# --- 1. OS DETECTION (POSIX & WINDOWS COMPATIBLE) ---
 ifeq ($(OS),Windows_NT)
+    DETECTED_OS := Windows
     OS_NAME := windows
 else
-    OS_NAME := linux
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        DETECTED_OS := Linux
+        OS_NAME := linux
+    else ifeq ($(UNAME_S),Darwin)
+        DETECTED_OS := Darwin
+        OS_NAME := macos
+    endif
 endif
 
-# --- 2. DIRECTORY CONFIGURATION ---
-SRC_DIR := src
-INC_DIR := inc
-OBJ_DIR := lib/$(OS_NAME)
-BIN_DIR := bin/$(OS_NAME)
+# --- 2. COMPILER SELECTION ---
+CC  := gcc
+CXX := g++
+
+# --- 3. DIRECTORY CONFIGURATION ---
+SRC_DIR  := src
+INC_DIR  := inc
+OBJ_DIR  := lib/$(OS_NAME)
+BIN_DIR  := bin/$(OS_NAME)
 APP_NAME := xloc
 
-# --- 3. FLAGS ---
-CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -g
-CXXFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g -flto=auto
+# --- 4. FLAGS ---
+CFLAGS           := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -g
+CXXFLAGS         := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g -flto=auto
 CXXFLAGS_RELEASE := -I$(INC_DIR) -std=c++23 -O3 -DNDEBUG -flto=auto
-COMMON_LDFLAGS := -lstdc++exp -flto=auto
+COMMON_LDFLAGS   := -lstdc++exp -flto=auto
 
-# --- 4. FILE DETECTION ---
-C_SRCS := $(wildcard $(SRC_DIR)/*.c)
+# --- 5. FILE DETECTION ---
+C_SRCS   := $(wildcard $(SRC_DIR)/*.c)
 CXX_SRCS := $(wildcard $(SRC_DIR)/*.cpp)
 
-C_OBJS := $(C_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+C_OBJS   := $(C_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 CXX_OBJS := $(CXX_SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-OBJS := $(C_OBJS) $(CXX_OBJS)
+OBJS     := $(C_OBJS) $(CXX_OBJS)
 
-# --- 5. OS CONTROL AND COMMANDS ---
-ifeq ($(OS),Windows_NT)
-	TARGET_EXT := .exe
-    SHELL := cmd.exe
-	LDFLAGS := -static -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread $(COMMON_LDFLAGS)
-    # /D: Disables auto run commands (isolation).
-    # /C: runs the commands and closes the shell.
+# --- 6. OS-SPECIFIC CONFIGURATION ---
+ifeq ($(DETECTED_OS),Windows)
+    TARGET_EXT  := .exe
+    SHELL       := cmd.exe
+    LDFLAGS     := -static -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread $(COMMON_LDFLAGS)
     .SHELLFLAGS := /D /C
-    TARGET := $(BIN_DIR)/$(APP_NAME)$(TARGET_EXT)
+    TARGET      := $(BIN_DIR)/$(APP_NAME)$(TARGET_EXT)
 
-	# for CMD I/O security change '/' symbols with '\' (e.g. lib\windows)
     WIN_OBJ_DIR := $(subst /,\,$(OBJ_DIR))
     WIN_BIN_DIR := $(subst /,\,$(BIN_DIR))
     
-    # Instead of fragile '&' operator, the commands are parted.
-    MKDIR_OBJ := if not exist $(WIN_OBJ_DIR) mkdir $(WIN_OBJ_DIR)
-    MKDIR_BIN := if not exist $(WIN_BIN_DIR) mkdir $(WIN_BIN_DIR)
-    CLEAN_OBJ := if exist $(WIN_OBJ_DIR) rd /s /q $(WIN_OBJ_DIR)
-    CLEAN_BIN := if exist $(WIN_BIN_DIR) rd /s /q $(WIN_BIN_DIR)
+    MKDIR_OBJ   := if not exist $(WIN_OBJ_DIR) mkdir $(WIN_OBJ_DIR)
+    MKDIR_BIN   := if not exist $(WIN_BIN_DIR) mkdir $(WIN_BIN_DIR)
+    CLEAN_OBJ   := if exist $(WIN_OBJ_DIR) rd /s /q $(WIN_OBJ_DIR)
+    CLEAN_BIN   := if exist $(WIN_BIN_DIR) rd /s /q $(WIN_BIN_DIR)
     
-    SCREEN_CLEAR := cls
-    SLEEP_CMD := timeout /t 1 /nobreak > NUL
+    SCREEN_CLEAR   := cls
+    SLEEP_CMD      := timeout /t 1 /nobreak > NUL
+    UP_TO_DATE_MSG := @if "$(WAS_REBUILT)"=="" echo --- [INFO] Project Is Up To Date. Compile Stopped. ---
 
-	UP_TO_DATE_MSG := @if "$(WAS_REBUILT)"=="" echo --- [INFO] Project Is Up To Date. Compile Stopped. ---
-else ifeq ($(OS),Linux)
-	LDFLAGS := -static-libgcc -static-libstdc++ -pthread $(COMMON_LDFLAGS)
-    TARGET := $(BIN_DIR)/$(APP_NAME)
+else ifeq ($(DETECTED_OS),Linux)
+    TARGET     := $(BIN_DIR)/$(APP_NAME)
+    LDFLAGS    := -static-libgcc -static-libstdc++ -pthread $(COMMON_LDFLAGS)
 
-    MKDIR_OBJ := mkdir -p $(OBJ_DIR)
-    MKDIR_BIN := mkdir -p $(BIN_DIR)
-    CLEAN_OBJ := rm -rf $(OBJ_DIR)
-    CLEAN_BIN := rm -rf $(BIN_DIR)
+    MKDIR_OBJ  := mkdir -p $(OBJ_DIR)
+    MKDIR_BIN  := mkdir -p $(BIN_DIR)
+    CLEAN_OBJ  := rm -rf $(OBJ_DIR)
+    CLEAN_BIN  := rm -rf $(BIN_DIR)
     
-    SCREEN_CLEAR := clear
-    SLEEP_CMD := sleep 1
-	UP_TO_DATE_MSG := @if [ -z "$(WAS_REBUILT)" ]; then echo "--- [INFO] Project Is Up To Date. Compile Stopped. ---"; fi
-else ifeq ($(OS),Darwin)
-    LDFLAGS := $(COMMON_LDFLAGS)
-    TARGET := $(BIN_DIR)/$(APP_NAME)
+    SCREEN_CLEAR   := clear
+    SLEEP_CMD      := sleep 1
+    UP_TO_DATE_MSG := @if [ -z "$(WAS_REBUILT)" ]; then echo "--- [INFO] Project Is Up To Date. Compile Stopped. ---"; fi
 
-    MKDIR_OBJ := mkdir -p $(OBJ_DIR)
-    MKDIR_BIN := mkdir -p $(BIN_DIR)
-    CLEAN_OBJ := rm -rf $(OBJ_DIR)
-    CLEAN_BIN := rm -rf $(BIN_DIR)
+else ifeq ($(DETECTED_OS),Darwin)
+    TARGET     := $(BIN_DIR)/$(APP_NAME)
+    LDFLAGS    := $(COMMON_LDFLAGS)
+
+    MKDIR_OBJ  := mkdir -p $(OBJ_DIR)
+    MKDIR_BIN  := mkdir -p $(BIN_DIR)
+    CLEAN_OBJ  := rm -rf $(OBJ_DIR)
+    CLEAN_BIN  := rm -rf $(BIN_DIR)
     
-    SCREEN_CLEAR := clear
-    SLEEP_CMD := sleep 1
-	UP_TO_DATE_MSG := @if [ -z "$(WAS_REBUILT)" ]; then echo "--- [INFO] Project Is Up To Date. Compile Stopped. ---"; fi
+    SCREEN_CLEAR   := clear
+    SLEEP_CMD      := sleep 1
+    UP_TO_DATE_MSG := @if [ -z "$(WAS_REBUILT)" ]; then echo "--- [INFO] Project Is Up To Date. Compile Stopped. ---"; fi
 endif
 
-# --- 6. COMPILING RULES ---
+# --- 7. COMPILING RULES ---
 compile: prepare $(TARGET)
 	$(UP_TO_DATE_MSG)
 
@@ -118,14 +123,14 @@ run: compile
 
 # --- Release Target Specific Variables ---
 release: CXXFLAGS := $(CXXFLAGS_RELEASE)
-release: CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -O3 -DNDEBUG -flto=auto
+release: CFLAGS   := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -O3 -DNDEBUG -flto=auto
 
 release: clean compile
 	@echo --- [RELEASE] Stripping Debug Symbols ---
 	@strip $(TARGET)
 	@echo --- [SUCCESS] Release Build Completed: $(TARGET) ---
 
-# --- 7. CLEANING ---
+# --- 8. CLEANING ---
 clean:
 	@echo --- [CLEAN] Resetting Project ---
 	@$(CLEAN_OBJ)
