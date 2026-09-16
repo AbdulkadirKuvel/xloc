@@ -25,14 +25,16 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup GCC (Linux)
+    - name: Setup GCC 14 (Linux)
       if: runner.os == 'Linux'
       run: |
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        sudo apt update
-        sudo apt install -y g++-14 make
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
-
+        sudo apt-get update
+        sudo apt-get install -y g++-14 make
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
+          --slave /usr/bin/g++ g++ /usr/bin/g++-14
+        
+        # Derleyici sürümünü doğrulama
+        g++ --version
     - name: Build Project
       run: |
         make release
