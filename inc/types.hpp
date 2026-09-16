@@ -16,10 +16,21 @@ namespace types
 
     struct Config
     {
-        // Initial Configuration
+        std::unordered_set<std::string> whitelist = {
+            ".py", ".java", ".c", ".cpp", ".h", ".hpp", ".cs",
+            ".html", ".css", ".js", ".rb", ".go", ".asm", ".v",
+            "makefile", "Makefile"};
+
+        std::unordered_set<std::string> blacklist = {
+            ".git", "bin", "out", "obj", "lib", "node_modules", ".vs", "venv", ".venv", "__pycache__"};
+
+        Error error_info;
+
+        fs::path path = ".";
+        fs::path config_path;
+        fs::path output_path;
 
         bool enable_color = true;
-        
         bool help_requested = false;
         bool error_requested = false;
         bool version_requested = false;
@@ -28,25 +39,8 @@ namespace types
         bool json_form = false;
         bool md_form = false;
         bool table_form = true;
-
         bool quiet = false;
-
-        // The files that app will scan.
-        std::unordered_set<std::string> whitelist = {
-            ".py", ".java", ".c", ".cpp", ".h", ".hpp", ".cs",
-            ".html", ".css", ".js", ".rb", ".go", ".asm", ".v",
-            "makefile", "Makefile"};
-
-        // The folders that app will not bother scanning.
-        std::unordered_set<std::string> blacklist = {
-            ".git", "bin", "out", "obj", "lib", "node_modules", ".vs", "venv", ".venv", "__pycache__"};
-
-        Error error_info;
-        fs::path path = ".";
-        fs::path config_path;
-        fs::path output_path;
     };
-
     struct FileStats
     {
         size_t file_count = 0;
