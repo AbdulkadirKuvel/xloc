@@ -28,7 +28,7 @@ APP_NAME := xloc
 CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -g
 CXXFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g -flto=auto
 CXXFLAGS_RELEASE := -I$(INC_DIR) -std=c++23 -O3 -DNDEBUG -flto=auto
-LDFLAGS := -static -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread -lstdc++exp -flto=auto
+COMMON_LDFLAGS := -lstdc++exp -flto=auto
 
 # --- 4. FILE DETECTION ---
 C_SRCS := $(wildcard $(SRC_DIR)/*.c)
@@ -42,6 +42,7 @@ OBJS := $(C_OBJS) $(CXX_OBJS)
 ifeq ($(OS),Windows_NT)
 	TARGET_EXT := .exe
     SHELL := cmd.exe
+	LDFLAGS := -static -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread $(COMMON_LDFLAGS)
     # /D: Disables auto run commands (isolation).
     # /C: runs the commands and closes the shell.
     .SHELLFLAGS := /D /C
@@ -61,9 +62,22 @@ ifeq ($(OS),Windows_NT)
     SLEEP_CMD := timeout /t 1 /nobreak > NUL
 
 	UP_TO_DATE_MSG := @if "$(WAS_REBUILT)"=="" echo --- [INFO] Project Is Up To Date. Compile Stopped. ---
-else
+else ifeq ($(OS),Linux)
+	LDFLAGS := -static-libgcc -static-libstdc++ -pthread $(COMMON_LDFLAGS)
     TARGET := $(BIN_DIR)/$(APP_NAME)
+
+    MKDIR_OBJ := mkdir -p $(OBJ_DIR)
+    MKDIR_BIN := mkdir -p $(BIN_DIR)
+    CLEAN_OBJ := rm -rf $(OBJ_DIR)
+    CLEAN_BIN := rm -rf $(BIN_DIR)
     
+    SCREEN_CLEAR := clear
+    SLEEP_CMD := sleep 1
+	UP_TO_DATE_MSG := @if [ -z "$(WAS_REBUILT)" ]; then echo "--- [INFO] Project Is Up To Date. Compile Stopped. ---"; fi
+else ifeq ($(OS),Darwin)
+    LDFLAGS := $(COMMON_LDFLAGS)
+    TARGET := $(BIN_DIR)/$(APP_NAME)
+
     MKDIR_OBJ := mkdir -p $(OBJ_DIR)
     MKDIR_BIN := mkdir -p $(BIN_DIR)
     CLEAN_OBJ := rm -rf $(OBJ_DIR)
