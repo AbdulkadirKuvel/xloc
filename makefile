@@ -4,6 +4,8 @@
 # Written by: Gemini 3.1 Pro & Abdulkadir 
 # =========================================
 
+export MAKE
+
 # --- 1. COMPILER SELECTION ---
 CC := gcc
 CXX := g++
@@ -24,9 +26,9 @@ APP_NAME := xloc
 
 # --- 3. FLAGS ---
 CFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c11 -g
-CXXFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g
+CXXFLAGS := -I$(INC_DIR) -Wall -Wextra -pedantic -std=c++23 -O3 -g -flto=auto
 CXXFLAGS_RELEASE := -I$(INC_DIR) -std=c++23 -O3 -DNDEBUG -flto=auto
-LDFLAGS := -lstdc++exp
+LDFLAGS := -static -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread -lstdc++exp -flto=auto
 
 # --- 4. FILE DETECTION ---
 C_SRCS := $(wildcard $(SRC_DIR)/*.c)
