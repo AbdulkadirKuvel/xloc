@@ -14,11 +14,11 @@ jobs:
         include:
           - os: ubuntu-latest
             build_path: bin/linux/xloc
-            release_exe: xloc-linux
+            release_exe: xloc
             asset_name: xloc-linux-amd64.tar.gz
           - os: windows-latest
             build_path: bin/windows/xloc.exe
-            release_exe: xloc-windows.exe
+            release_exe: xloc.exe
             asset_name: xloc-windows-amd64.zip
 
     steps:
