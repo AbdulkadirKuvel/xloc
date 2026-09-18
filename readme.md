@@ -52,16 +52,14 @@ For standalone usage without compiling from source:
 
 To see all commands, type in `xloc --help`
 
+If you prefer not to deal with compiler and the version, this should be your pick.
+
 ### B. Build From Source
 
 If you prefer to compile the tool yourself from the source code:
 
-1. Clone the repository (or download the .zip)
+1. Download the latest source code from releases page
 
-```Bash
-git clone https://github.com/AbdulkadirKuvel/xloc.git
-cd xloc
-```
 2. Build the project
 
 For Linux and macOS:
@@ -90,28 +88,33 @@ sudo cp xloc /usr/local/bin/
 
 #### Recursive traversal
 
-Use the `-r` or `--recursive` flag to recursively traverse and alayze all subdirectories.
+- Use the `-r` or `--recursive` flag to recursively traverse and alayze all subdirectories.
 
-- Current directory & subdirectories: `xloc -r`
-- Specific directory & subdirectories: `xloc <path> -r` 
+  - Current directory & subdirectories: `xloc -r`
+  - Specific directory & subdirectories: `xloc <path> -r` 
 
 #### Output Redirection
 
-Use the `-o <outputpath>` or `--output <outputpath>` flag to write the analysis results directly to a file.
+- Use the `-o <outputpath>` or `--output <outputpath>` flag to write the analysis results directly to a file.
 
-- `xloc -o <outputpath>`
+  - `xloc -o <outputpath>`
 
 #### Formatting
 
-Use the `-j` or `--json` flag to format output as a json.
+- Use the `-j` or `--json` flag to format output as a json.
 
-- `xloc -j`
+  - `xloc -j`
+
+
+- Use the `-m` or `--markdown` flag to format output as a markdown.
+
+  - `xloc -m`
 
 #### Configuration
 
-Use config flag `-c <configpath>` or `--config <configpath>` to utilize a config.json file
+- Use config flag `-c <configpath>` or `--config <configpath>` to utilize a config.json file
 
-- `xloc -c <configpath>`
+  - `xloc -c <configpath>`
 
 A configuration file can only be a json file.
 
@@ -123,7 +126,7 @@ A configuration file can only be a json file.
 }
 ```
 
-#### Prerequisites
+#### Prerequisites To Run Source Code
 
 * A C++23 compatible compiler (GCC 13+, Clang 16+, or MSVC 19.38+)
 
@@ -140,6 +143,9 @@ A configuration file can only be a json file.
 
 - [ ] Seperate Docstring From Comments 
     - Creates more accurate lexers.
+
+- [ ] Improve Config File
+    - Lets user have more control.
 
 - [x] Implement Benchmarking
     - Show how much time consumed for each step.
