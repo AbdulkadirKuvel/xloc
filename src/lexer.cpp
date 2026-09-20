@@ -1,489 +1,433 @@
 #include <lexer.hpp>
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <print>
+#include <string_view>
+#include <cstddef>
 
 namespace lexer
 {
-    /// @brief Analyzes the given string block for blank lines
-    /// @param content the block of string
-    /// @return LineMetrics
-    inline LineMetrics analyze_lines(std::string_view content)
+    namespace detail
     {
-        LineMetrics metrics;
-        if (content.empty())
-            return metrics;
-
-        size_t pos = 0;
-        const size_t len = content.length();
-
-        while (pos < len)
+        // Boşluk karakteri kontrolü (ASCII inline optimization)
+        constexpr bool is_space(char c) noexcept
         {
-            size_t next_nl = content.find('\n', pos);
-            bool is_last_line = (next_nl == std::string_view::npos);
-            size_t end_pos = is_last_line ? len : next_nl;
-
-            metrics.total++;
-
-            size_t first_char = content.find_first_not_of(" \t\r", pos);
-
-            if (first_char == std::string_view::npos || first_char >= end_pos)
-            {
-                metrics.blank++;
-            }
-
-            if (is_last_line)
-                break;
-            pos = next_nl + 1;
+            return c == ' ' || c == '\t' || c == '\r';
         }
-        return metrics;
     }
 
-    /// @brief analyzes files that has comments like C
-    /// @param content
-    /// @param stats
-    void file_analyzer_c(std::string_view content, types::FileStats &stats)
+    /// @brief C-Style diller (C, C++, Java, JS, C#, Go, Rust) için tek geçişli (Single-Pass) analizör.
+    void file_analyzer_c(std::string_view content, types::FileStats &stats) noexcept
     {
-        LineMetrics file_metrics = analyze_lines(content);
-        stats.total_line = file_metrics.total;
-        stats.blank_line = file_metrics.blank;
+        if (content.empty()) return;
 
-        size_t pos = 0;
-        size_t comment_start_pos = 0;
-        const size_t len = content.length();
-        DFA_Machine current_state = DFA_Machine::IN_CODE;
+        const char* const ptr = content.data();
+        const std::size_t len = content.size();
 
-        while (pos < len)
+        bool has_code = false;
+        bool has_comment = false;
+        
+        enum class State : std::uint8_t {
+            IN_CODE,
+            IN_SINGLE_COMMENT,
+            IN_MULTI_COMMENT,
+            IN_SINGLE_STRING,
+            IN_DOUBLE_STRING
+        };
+
+        State state = State::IN_CODE;
+
+        for (std::size_t i = 0; i < len; ++i)
         {
-            switch (current_state)
-            {
-            case IN_CODE:
-            {
-                size_t next_pos = content.find_first_of("/'\"", pos);
+            const char c = ptr[i];
 
-                if (next_pos == std::string_view::npos)
+            // Satır Sonu (Line Ending) İşleme
+            if (c == '\n')
+            {
+                stats.total_line++;
+
+                if (!has_code && !has_comment)
                 {
-                    pos = len;
-                    break;
+                    stats.blank_line++;
+                }
+                else if (has_code)
+                {
+                    stats.code_line++;
+                }
+                else
+                {
+                    stats.comment_line++;
                 }
 
-                pos = next_pos;
-
-                char trigger = content[pos];
-
-                if (trigger == '/')
+                // Bir sonraki satır için durum sıfırlama
+                has_code = false;
+                
+                if (state == State::IN_SINGLE_COMMENT)
                 {
-                    if (pos + 1 < len)
+                    state = State::IN_CODE;
+                    has_comment = false;
+                }
+                else if (state == State::IN_MULTI_COMMENT)
+                {
+                    // Çok satırlı yorum devam ediyorsa sonraki satır da yorum sayılır
+                    has_comment = true;
+                }
+                else
+                {
+                    has_comment = false;
+                }
+
+                continue;
+            }
+
+            // Durum Makinesi (State Machine)
+            switch (state)
+            {
+            case State::IN_CODE:
+            {
+                if (detail::is_space(c)) continue;
+
+                if (c == '/' && (i + 1 < len))
+                {
+                    const char next = ptr[i + 1];
+                    if (next == '/')
                     {
-                        // is this a single line comment?
-                        char next_chr = content[pos + 1];
-                        if (next_chr == '/')
-                        {
-                            // this is a single line comment.
-                            // Look-behind
-                            bool has_code_before = false;
-                            if (pos > 0)
-                            {
-                                size_t line_start = content.find_last_of('\n', pos - 1);
-                                line_start = (line_start == std::string_view::npos) ? 0 : line_start + 1;
-                                size_t non_ws = content.find_first_not_of(" \t\r", line_start);
-
-                                if (non_ws != std::string_view::npos && non_ws < pos)
-                                {
-                                    has_code_before = true;
-                                }
-                            }
-
-                            if (!has_code_before)
-                            {
-                                stats.comment_line++;
-                            }
-                            // else
-                            // {
-                            // This part will be counted in the final calculation.
-                            // }
-
-                            size_t eol = content.find('\n', pos);
-                            pos = (eol == std::string_view::npos) ? len : eol;
-                        }
-                        else if (next_chr == '*')
-                        {
-                            // This is a multiline comment.
-                            current_state = DFA_Machine::IN_MULTI_COMMENT;
-                            comment_start_pos = pos;
-                            pos += 2;
-                        }
-                        else
-                        {
-                            pos++;
-                        }
+                        has_comment = true;
+                        state = State::IN_SINGLE_COMMENT;
+                        ++i; // '/' karakterini atla
                     }
-                }
-                else if (trigger == '"')
-                {
-                    current_state = DFA_Machine::IN_DOUBLE_STRING;
-                    pos++;
-                }
-                else if (trigger == '\'')
-                {
-                    current_state = DFA_Machine::IN_SINGLE_STRING;
-                    pos++;
-                }
-                break;
-            }
-            case IN_SINGLE_STRING:
-            {
-                size_t end_str = content.find('\'', pos);
-                if (end_str == std::string_view::npos)
-                {
-                    pos = len;
-                }
-                else
-                {
-                    pos = end_str + 1;
-                    current_state = IN_CODE;
-                }
-                break;
-            }
-            case IN_DOUBLE_STRING:
-            {
-                size_t end_str = content.find('\"', pos);
-                if (end_str == std::string_view::npos)
-                {
-                    pos = len;
-                }
-                else
-                {
-                    pos = end_str + 1;
-                    current_state = IN_CODE;
-                }
-                break;
-            }
-            case IN_MULTI_COMMENT:
-            {
-                size_t end_comment = content.find("*/", pos);
-
-                std::string_view comment_block;
-
-                if (end_comment == std::string_view::npos)
-                {
-                    comment_block = content.substr(comment_start_pos);
-                    pos = len;
-                }
-                else
-                {
-                    comment_block = content.substr(comment_start_pos, (end_comment + 2) - comment_start_pos);
-                    current_state = DFA_Machine::IN_CODE;
-                    pos = end_comment + 2;
-                }
-
-                // Calculate the length of the comment
-                LineMetrics comment_metrics = analyze_lines(comment_block);
-                size_t real_comment_lines = comment_metrics.total - comment_metrics.blank;
-
-                bool has_code_before = false;
-                if (comment_start_pos > 0)
-                {
-                    size_t line_start = content.find_last_of('\n', comment_start_pos - 1);
-                    line_start = (line_start == std::string_view::npos) ? 0 : line_start + 1;
-
-                    size_t non_ws = content.find_first_not_of(" \t\r", line_start);
-                    has_code_before = (non_ws != std::string_view::npos && non_ws < comment_start_pos);
-                }
-
-                bool has_code_after = false;
-                bool is_single_line = (comment_metrics.total == 1);
-
-                if (end_comment != std::string_view::npos)
-                {
-                    size_t next_pos = end_comment + 2;
-                    size_t line_end = content.find('\n', next_pos);
-                    line_end = (line_end == std::string_view::npos) ? len : line_end;
-
-                    size_t non_ws = content.find_first_not_of(" \t\r", next_pos);
-                    has_code_after = (non_ws != std::string_view::npos && non_ws < line_end);
-                }
-
-                // if the line has code before comment "bool a; /* bool"
-                if (has_code_before && real_comment_lines > 0)
-                {
-                    real_comment_lines--;
-                }
-
-                // if the line has code after comment : "*/ bool a;"
-                if (!is_single_line && has_code_after && real_comment_lines > 0)
-                {
-                    real_comment_lines--;
-                }
-                stats.comment_line += real_comment_lines;
-                break;
-            }
-            default:
-                break;
-            }
-        }
-        stats.code_line = stats.total_line - (stats.comment_line + stats.blank_line);
-    }
-
-    void file_analyzer_py(std::string_view content, types::FileStats &stats)
-    {
-        LineMetrics file_metrics = analyze_lines(content);
-        stats.total_line = file_metrics.total;
-        stats.blank_line = file_metrics.blank;
-
-        size_t pos = 0;
-        // size_t comment_start_pos = 0;
-        const size_t len = content.length();
-        DFA_Machine current_state = DFA_Machine::IN_CODE;
-
-        while (pos < len)
-        {
-            switch (current_state)
-            {
-            case IN_CODE:
-            {
-                size_t next_pos = content.find_first_of("#'\"", pos);
-
-                if (next_pos == std::string_view::npos)
-                {
-                    pos = len;
-                    break;
-                }
-
-                pos = next_pos;
-
-                char trigger = content[pos];
-
-                if (trigger == '#')
-                {
-                    // This is a single line comment.
-                    // Look-behind
-
-                    bool has_code_before = false;
-                    if (pos > 0)
+                    else if (next == '*')
                     {
-                        size_t line_start = content.find_last_of('\n', pos - 1);
-                        line_start = (line_start == std::string_view::npos) ? 0 : line_start + 1;
-                        size_t non_ws = content.find_first_not_of(" \t\r", line_start);
-
-                        if (non_ws != std::string_view::npos && non_ws < pos)
-                        {
-                            has_code_before = true;
-                        }
-                    }
-
-                    if (!has_code_before)
-                    {
-                        stats.comment_line++;
-                    }
-                    // else
-                    // {
-                    // This part will be counted in the final calculation.
-                    // }
-
-                    // Jump the position to next line.
-                    size_t eol = content.find('\n', pos);
-                    pos = (eol == std::string_view::npos) ? len : eol;
-                }
-                else if (trigger == '"')
-                {
-                    // FEATURE: Create heuristic structure for better accuracy.
-                    current_state = DFA_Machine::IN_DOUBLE_STRING;
-                    pos++;
-                }
-                else if (trigger == '\'')
-                {
-                    current_state = DFA_Machine::IN_SINGLE_STRING;
-                    pos++;
-                }
-                break;
-            }
-            case IN_SINGLE_STRING:
-            {
-                size_t end_str = content.find('\'', pos);
-                if (end_str == std::string_view::npos)
-                {
-                    pos = len;
-                }
-                else
-                {
-                    pos = end_str + 1;
-                    current_state = IN_CODE;
-                }
-                break;
-            }
-            case IN_DOUBLE_STRING:
-            {
-                size_t end_str = content.find('\"', pos);
-                if (end_str == std::string_view::npos)
-                {
-                    pos = len;
-                }
-                else
-                {
-                    pos = end_str + 1;
-                    current_state = IN_CODE;
-                }
-                break;
-            }
-            // No multiline comment processing yet.
-            // case IN_MULTI_COMMENT:
-            // {
-            //     break;
-            // }
-            default:
-                break;
-            }
-        }
-        stats.code_line = stats.total_line - (stats.comment_line + stats.blank_line);
-    }
-
-    void file_analyzer_xml(std::string_view content, types::FileStats &stats)
-    {
-        LineMetrics file_metrics = analyze_lines(content);
-        stats.total_line = file_metrics.total;
-        stats.blank_line = file_metrics.blank;
-
-        size_t pos = 0;
-        size_t comment_start_pos = 0;
-        const size_t len = content.length();
-        DFA_Machine current_state = DFA_Machine::IN_CODE;
-
-        while (pos < len)
-        {
-            switch (current_state)
-            {
-            case IN_CODE:
-            {
-                size_t next_pos = content.find_first_of("<\"'", pos);
-
-                if (next_pos == std::string_view::npos)
-                {
-                    pos = len;
-                    break;
-                }
-
-                pos = next_pos;
-
-                char trigger = content[pos];
-
-                if (trigger == '<')
-                {
-                    if (pos + 3 < len && content.substr(pos, 4) == "<!--")
-                    {
-                        current_state = DFA_Machine::IN_MULTI_COMMENT;
-                        comment_start_pos = pos;
-                        pos += 4;
+                        has_comment = true;
+                        state = State::IN_MULTI_COMMENT;
+                        ++i; // '*' karakterini atla
                     }
                     else
                     {
-                        pos++;
+                        has_code = true;
                     }
                 }
-                else if (trigger == '"')
+                else if (c == '"')
                 {
-                    current_state = DFA_Machine::IN_DOUBLE_STRING;
-                    pos++;
+                    has_code = true;
+                    state = State::IN_DOUBLE_STRING;
                 }
-                else if (trigger == '\'')
+                else if (c == '\'')
                 {
-                    current_state = DFA_Machine::IN_SINGLE_STRING;
-                    pos++;
-                }
-                break;
-            }
-            case IN_SINGLE_STRING:
-            {
-                size_t end_str = content.find('\'', pos);
-                if (end_str == std::string_view::npos)
-                {
-                    pos = len;
+                    has_code = true;
+                    state = State::IN_SINGLE_STRING;
                 }
                 else
                 {
-                    pos = end_str + 1;
-                    current_state = IN_CODE;
+                    has_code = true;
                 }
                 break;
             }
-            case IN_DOUBLE_STRING:
+            case State::IN_SINGLE_COMMENT:
+                // Satır sonuna kadar tüm karakterler yutulur
+                break;
+
+            case State::IN_MULTI_COMMENT:
             {
-                size_t end_str = content.find('\"', pos);
-                if (end_str == std::string_view::npos)
+                has_comment = true;
+                if (c == '*' && (i + 1 < len) && ptr[i + 1] == '/')
                 {
-                    pos = len;
-                }
-                else
-                {
-                    pos = end_str + 1;
-                    current_state = IN_CODE;
+                    state = State::IN_CODE;
+                    ++i; // '/' karakterini atla
                 }
                 break;
             }
-            case IN_MULTI_COMMENT:
+            case State::IN_SINGLE_STRING:
             {
-                size_t end_comment = content.find("-->", pos);
-
-                std::string_view comment_block;
-
-                if (end_comment == std::string_view::npos)
+                has_code = true;
+                if (c == '\\')
                 {
-                    comment_block = content.substr(comment_start_pos);
-                    pos = len;
+                    ++i; // Escape karakterini yut (\' engellemesi)
                 }
-                else
+                else if (c == '\'')
                 {
-                    comment_block = content.substr(comment_start_pos, (end_comment + 3) - comment_start_pos);
-                    current_state = DFA_Machine::IN_CODE;
-                    pos = end_comment + 3;
+                    state = State::IN_CODE;
                 }
-
-                LineMetrics comment_metrics = analyze_lines(comment_block);
-                size_t real_comment_lines = comment_metrics.total - comment_metrics.blank;
-
-                bool has_code_before = false;
-                if (comment_start_pos > 0)
-                {
-                    size_t line_start = content.find_last_of('\n', comment_start_pos - 1);
-                    line_start = (line_start == std::string_view::npos) ? 0 : line_start + 1;
-
-                    size_t non_ws = content.find_first_not_of(" \t\r", line_start);
-                    has_code_before = (non_ws != std::string_view::npos && non_ws < comment_start_pos);
-                }
-
-                bool has_code_after = false;
-                bool is_single_line = (comment_metrics.total == 1);
-
-                if (end_comment != std::string_view::npos)
-                {
-                    size_t next_pos = end_comment + 3;
-                    size_t line_end = content.find('\n', next_pos);
-                    line_end = (line_end == std::string_view::npos) ? len : line_end;
-
-                    size_t non_ws = content.find_first_not_of(" \t\r", next_pos);
-                    has_code_after = (non_ws != std::string_view::npos && non_ws < line_end);
-                }
-
-                // if the line has code before comment : "<p> <!--"
-                if (has_code_before && real_comment_lines > 0)
-                {
-                    real_comment_lines--;
-                }
-
-                // if the line has code after comment : "--> <p>"
-                if (!is_single_line && has_code_after && real_comment_lines > 0)
-                {
-                    real_comment_lines--;
-                }
-
-                stats.comment_line += real_comment_lines;
                 break;
             }
-            default:
+            case State::IN_DOUBLE_STRING:
+            {
+                has_code = true;
+                if (c == '\\')
+                {
+                    ++i; // Escape karakterini yut (\" engellemesi)
+                }
+                else if (c == '"')
+                {
+                    state = State::IN_CODE;
+                }
                 break;
+            }
             }
         }
-        stats.code_line = stats.total_line - (stats.comment_line + stats.blank_line);
+
+        // Son satırda '\n' olmaması durumu (EOF Handling)
+        if (len > 0)
+        {
+            stats.total_line++;
+            if (!has_code && !has_comment)
+            {
+                stats.blank_line++;
+            }
+            else if (has_code)
+            {
+                stats.code_line++;
+            }
+            else
+            {
+                stats.comment_line++;
+            }
+        }
     }
-}
+
+    /// @brief Python dosyaları için tek geçişli analizör.
+    void file_analyzer_py(std::string_view content, types::FileStats &stats) noexcept
+    {
+        if (content.empty()) return;
+
+        const char* const ptr = content.data();
+        const std::size_t len = content.size();
+
+        bool has_code = false;
+        bool has_comment = false;
+
+        enum class State : std::uint8_t {
+            IN_CODE,
+            IN_SINGLE_COMMENT,
+            IN_SINGLE_STRING,
+            IN_DOUBLE_STRING
+        };
+
+        State state = State::IN_CODE;
+
+        for (std::size_t i = 0; i < len; ++i)
+        {
+            const char c = ptr[i];
+
+            if (c == '\n')
+            {
+                stats.total_line++;
+
+                if (!has_code && !has_comment)
+                {
+                    stats.blank_line++;
+                }
+                else if (has_code)
+                {
+                    stats.code_line++;
+                }
+                else
+                {
+                    stats.comment_line++;
+                }
+
+                has_code = false;
+                has_comment = false;
+
+                if (state == State::IN_SINGLE_COMMENT)
+                {
+                    state = State::IN_CODE;
+                }
+
+                continue;
+            }
+
+            switch (state)
+            {
+            case State::IN_CODE:
+            {
+                if (detail::is_space(c)) continue;
+
+                if (c == '#')
+                {
+                    has_comment = true;
+                    state = State::IN_SINGLE_COMMENT;
+                }
+                else if (c == '"')
+                {
+                    has_code = true;
+                    state = State::IN_DOUBLE_STRING;
+                }
+                else if (c == '\'')
+                {
+                    has_code = true;
+                    state = State::IN_SINGLE_STRING;
+                }
+                else
+                {
+                    has_code = true;
+                }
+                break;
+            }
+            case State::IN_SINGLE_COMMENT:
+                break;
+
+            case State::IN_SINGLE_STRING:
+            {
+                has_code = true;
+                if (c == '\\')
+                {
+                    ++i;
+                }
+                else if (c == '\'')
+                {
+                    state = State::IN_CODE;
+                }
+                break;
+            }
+            case State::IN_DOUBLE_STRING:
+            {
+                has_code = true;
+                if (c == '\\')
+                {
+                    ++i;
+                }
+                else if (c == '"')
+                {
+                    state = State::IN_CODE;
+                }
+                break;
+            }
+            }
+        }
+
+        if (len > 0)
+        {
+            stats.total_line++;
+            if (!has_code && !has_comment)
+            {
+                stats.blank_line++;
+            }
+            else if (has_code)
+            {
+                stats.code_line++;
+            }
+            else
+            {
+                stats.comment_line++;
+            }
+        }
+    }
+
+    /// @brief XML / HTML dosyaları için tek geçişli analizör.
+    void file_analyzer_xml(std::string_view content, types::FileStats &stats) noexcept
+    {
+        if (content.empty()) return;
+
+        const char* const ptr = content.data();
+        const std::size_t len = content.size();
+
+        bool has_code = false;
+        bool has_comment = false;
+
+        enum class State : std::uint8_t {
+            IN_CODE,
+            IN_MULTI_COMMENT,
+            IN_SINGLE_STRING,
+            IN_DOUBLE_STRING
+        };
+
+        State state = State::IN_CODE;
+
+        for (std::size_t i = 0; i < len; ++i)
+        {
+            const char c = ptr[i];
+
+            if (c == '\n')
+            {
+                stats.total_line++;
+
+                if (!has_code && !has_comment)
+                {
+                    stats.blank_line++;
+                }
+                else if (has_code)
+                {
+                    stats.code_line++;
+                }
+                else
+                {
+                    stats.comment_line++;
+                }
+
+                has_code = false;
+                has_comment = (state == State::IN_MULTI_COMMENT);
+
+                continue;
+            }
+
+            switch (state)
+            {
+            case State::IN_CODE:
+            {
+                if (detail::is_space(c)) continue;
+
+                if (c == '<' && (i + 3 < len) &&
+                    ptr[i + 1] == '!' && ptr[i + 2] == '-' && ptr[i + 3] == '-')
+                {
+                    has_comment = true;
+                    state = State::IN_MULTI_COMMENT;
+                    i += 3;
+                }
+                else if (c == '"')
+                {
+                    has_code = true;
+                    state = State::IN_DOUBLE_STRING;
+                }
+                else if (c == '\'')
+                {
+                    has_code = true;
+                    state = State::IN_SINGLE_STRING;
+                }
+                else
+                {
+                    has_code = true;
+                }
+                break;
+            }
+            case State::IN_MULTI_COMMENT:
+            {
+                has_comment = true;
+                if (c == '-' && (i + 2 < len) && ptr[i + 1] == '-' && ptr[i + 2] == '>')
+                {
+                    state = State::IN_CODE;
+                    i += 2;
+                }
+                break;
+            }
+            case State::IN_SINGLE_STRING:
+            {
+                has_code = true;
+                if (c == '\'') state = State::IN_CODE;
+                break;
+            }
+            case State::IN_DOUBLE_STRING:
+            {
+                has_code = true;
+                if (c == '"') state = State::IN_CODE;
+                break;
+            }
+            }
+        }
+
+        if (len > 0)
+        {
+            stats.total_line++;
+            if (!has_code && !has_comment)
+            {
+                stats.blank_line++;
+            }
+            else if (has_code)
+            {
+                stats.code_line++;
+            }
+            else
+            {
+                stats.comment_line++;
+            }
+        }
+    }
+
+} // namespace lexer

@@ -1,31 +1,15 @@
-#pragma once
-#ifndef LEXER_HPP
-#define LEXER_HPP
-
-#include <filesystem>
 #include <types.hpp>
-#include <utils.hpp>
+#include <string>
 
 namespace lexer
 {
-    enum DFA_Machine
+    namespace detail
     {
-        IN_CODE,          // start
-        IN_SINGLE_STRING, // one character string (')
-        IN_DOUBLE_STRING, // two characters string (")
-        IN_MULTI_COMMENT, // in multiline comment (/*) or (""")
-    };
+        [[nodiscard]] constexpr bool is_space(char) noexcept;
+    } // namespace detail
 
-    struct LineMetrics {
-        size_t total = 0;
-        size_t blank = 0;
-    };
+    void file_analyzer_c(std::string_view, types::FileStats &) noexcept;
+    void file_analyzer_py(std::string_view, types::FileStats &) noexcept;
+    void file_analyzer_xml(std::string_view, types::FileStats &) noexcept;
 
-    
-    [[nodiscard]] inline LineMetrics analyze_lines(std::string_view);
-    
-    void file_analyzer_c(std::string_view, types::FileStats &);
-    void file_analyzer_py(std::string_view, types::FileStats &);
-    void file_analyzer_xml(std::string_view, types::FileStats &);
-}
-#endif
+} // namespace lexer
