@@ -1,31 +1,35 @@
 #include <utils.hpp>
+#include <string_view>
+#include <fstream>
 
-namespace fs = std::filesystem;
+#include <cstdlib>
+
+#if defined(_WIN32)
+#include <io.h>
+#define ISATTY _isatty
+#define FILENO _fileno
+#else
+#include <unistd.h>
+#define ISATTY isatty
+#define FILENO fileno
+#endif
 
 namespace utils
 {
-    std::string read_file_into_buffer(const fs::path &filepath, std::error_code &ec)
+    bool supports_color() noexcept
     {
-        std::ifstream file(filepath, std::ios::in | std::ios::binary);
-        if (!file)
+        static const bool color_enabled = []()
         {
-            ec = std::make_error_code(std::errc::no_such_file_or_directory);
-            return "";
-        }
+            const bool is_terminal = ISATTY(FILENO(stdout)) != 0;
+            if (!is_terminal)
+                return false;
 
-        file.seekg(0, std::ios::end);
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
+            const char *no_color = std::getenv("NO_COLOR");
+            const bool no_color_set = (no_color != nullptr && !std::string_view(no_color).empty());
 
-        std::string buffer;
-        buffer.resize(size);
+            return !no_color_set;
+        }();
 
-        if (file.read(buffer.data(), size))
-        {
-            return buffer;
-        }
-
-        ec = std::make_error_code(std::errc::io_error);
-        return "";
+        return color_enabled;
     }
 }
