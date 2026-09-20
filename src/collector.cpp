@@ -1,7 +1,11 @@
 #include <collector.hpp>
+#include <formatter.hpp>
+#include <format>
 #include <lexer.hpp>
+#include <MemoryMappedFile.hpp>
 #include <unordered_set>
 #include <map>
+#include <unordered_map>
 #include <iostream>
 #include <print>
 
@@ -21,43 +25,56 @@ namespace collector
         return nullptr;
     }
 
-    std::map<std::string, types::FileStats> gather_files_stats(std::vector<fs::path> files)
+    std::map<std::string, types::FileStats> gather_files_stats(std::span<const fs::path> files, const types::Config &config)
     {
-        std::map<std::string, types::FileStats> gathered_stats;
+        std::unordered_map<std::string, types::FileStats> gathered_stats;
 
-        for (const auto &file : files)
+        for (const auto &filepath : files)
         {
-            std::string ext = file.extension().string();
-            types::FileStats file_stats;
+            const auto ext_path = filepath.extension();
+            if (ext_path.empty())
+                continue;
 
-            auto func = get_analyzer(ext);
-            if (func)
+            std::string ext = ext_path.string();
+            auto lexer_function = get_analyzer(ext);
+
+            if (!lexer_function)
+                continue;
+
+            try
             {
-                std::error_code ec;
-                std::string file_content = utils::read_file_into_buffer(file, ec);
+                xloc::io::MemoryMappedFile mmap_file(filepath);
 
-                if (ec)
+                if (mmap_file.empty())
                 {
-                    std::println("File \"{}\" could not open for reading.", file.generic_string());
+                    gathered_stats[ext].file_count += 1;
                     continue;
                 }
 
-                func(file_content, file_stats);
+                types::FileStats file_stats;
+                file_stats.file_count = 1;
 
-                types::FileStats &ex_stats = gathered_stats[ext];
+                lexer_function(mmap_file.data(), file_stats);
 
-                ex_stats.blank_line += file_stats.blank_line;
-                ex_stats.comment_line += file_stats.comment_line;
-                ex_stats.code_line += file_stats.code_line;
-                ex_stats.total_line += file_stats.total_line;
-                ex_stats.file_count++;
+                gathered_stats[ext] += file_stats;
             }
-            else
+            catch (const std::system_error &error)
             {
-                continue;
-                // std::println("[Devinfo]: The type \"{}\" is not yet implemented.", file.extension().generic_string());
+                formatter::print_warning(
+                    types::Error{
+                        .title = "IO Error",
+                        .message = std::format("File {} skipped due to io error.\n Code: {}", filepath.string(), error.code().value())},
+                    config);
+            }
+            catch (...)
+            {
+                formatter::print_error(
+                    types::Error{
+                        .title = "Lexer Error",
+                        .message = std::format("Lexer exception on file: {}.", filepath.string())},
+                    config);
             }
         }
-        return gathered_stats;
+        return {gathered_stats.begin(), gathered_stats.end()};
     }
 }

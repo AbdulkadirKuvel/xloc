@@ -32,6 +32,7 @@ public:
                          stats.code_line, stats.comment_line, stats.blank_line);
         }
 
+        std::println(middle_border);
         std::println(os, str,
                      "Total", total.file_count, total.total_line,
                      total.code_line, total.comment_line, total.blank_line);

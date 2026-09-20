@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <vector>
 #include <map>
+#include <span>
 
 namespace fs = std::filesystem;
 
@@ -52,7 +53,7 @@ namespace collector
 
     router get_analyzer(const std::string);
 
-    [[nodiscard]] std::map<std::string, types::FileStats> gather_files_stats(std::vector<fs::path>);
+    [[nodiscard]] std::map<std::string, types::FileStats> gather_files_stats(std::span<const fs::path>, const types::Config&);
 
 }
 
