@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     
     const auto stats = benchmark::measure_step("analyzing files", config, [&]
     {
-        return collector::gather_files_stats(paths);
+        return collector::gather_files_stats(paths, config);
     });
     // clang-format on
 
