@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 namespace types
 {
-    constexpr std::string_view version = "v1.0.1.2";
+    constexpr std::string_view version = "v1.1";
     struct Error
     {
         std::string title = "";
