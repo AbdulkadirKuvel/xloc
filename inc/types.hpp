@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 namespace types
 {
-    constexpr std::string_view version = "v1.0";
+    constexpr std::string_view version = "v1.0.1.2";
     struct Error
     {
         std::string title = "";
@@ -49,5 +49,16 @@ namespace types
         size_t comment_line = 0;
         size_t blank_line = 0;
         size_t total_line = 0;
+
+        FileStats operator+=(const FileStats &rhs) noexcept
+        {
+            file_count += rhs.file_count;
+
+            blank_line += rhs.blank_line;
+            code_line += rhs.code_line;
+            comment_line += rhs.comment_line;
+            total_line += rhs.total_line;
+            return *this;
+        }
     };
 }
