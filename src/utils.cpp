@@ -14,7 +14,7 @@
 #define FILENO fileno
 #endif
 
-namespace utils
+namespace xloc::utility
 {
     bool supports_color() noexcept
     {

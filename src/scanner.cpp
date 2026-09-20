@@ -3,7 +3,7 @@
 #include <print>
 #include <unordered_set>
 #include <formatter.hpp>
-namespace scanner
+namespace xloc::scanner
 {
     namespace internal
     {
@@ -13,7 +13,7 @@ namespace scanner
         }
     }
     
-    std::vector<fs::path> scan(types::Config config)
+    std::vector<fs::path> scan(xloc::types::Config config)
     {
         if (config.single_file)
         {
@@ -28,7 +28,7 @@ namespace scanner
         return list_files(config.path, config);
     }
 
-    std::vector<fs::path> list_files(const fs::path &path, const types::Config &config)
+    std::vector<fs::path> list_files(const fs::path &path, const xloc::types::Config &config)
     {
         std::vector<fs::path> paths;
         std::error_code ec;
@@ -82,7 +82,7 @@ namespace scanner
         return paths;
     }
 
-    inline bool should_ignore_entry(const fs::path &path, const types::Config &config)
+    inline bool should_ignore_entry(const fs::path &path, const xloc::types::Config &config)
     {
         const std::string filename = path.filename().string();
 
@@ -99,7 +99,7 @@ namespace scanner
         return internal::in_list(filename, config.blacklist);
     }
 
-    std::vector<fs::path> list_files_recursive(const fs::path &root, const types::Config &config)
+    std::vector<fs::path> list_files_recursive(const fs::path &root, const xloc::types::Config &config)
     {
         std::vector<fs::path> paths;
         std::error_code ec;
@@ -110,8 +110,8 @@ namespace scanner
 
         if (ec)
         {
-            formatter::print_warning(
-                types::Error{
+            xloc::fmt::print_warning(
+                xloc::types::Error{
                     .title = "Root Inaccessable",
                     .message = "Could not access the root folder."},
                 config);
@@ -152,8 +152,8 @@ namespace scanner
             it.increment(ec);
             if (ec)
             {
-                formatter::print_warning(
-                    types::Error{
+                xloc::fmt::print_warning(
+                    xloc::types::Error{
                         .title = "Filesystem Iteration Warning",
                         .message = "Error reading entry. Possibility: ERROR_SHARING_VIOLATION or broken symlink."},
                     config);

@@ -8,12 +8,12 @@
 class MarkdownFormatter : public IReportFormatter
 {
 public:
-    void format(std::ostream &os, const std::map<std::string, types::FileStats> &stats) const override
+    void format(std::ostream &os, const std::map<std::string, xloc::types::FileStats> &stats) const override
     {
         std::println(os, "| Language | Files | Lines | Code | Comment | Blank |");
         std::println(os, "| :--- | :---: | :---: | :---: | :---: | :---: |");
 
-        types::FileStats total_stats{};
+        xloc::types::FileStats total_stats{};
 
         for (const auto& [ext, stat] : stats)
         {

@@ -3,7 +3,7 @@
 #define UTILS_HPP
 
 
-namespace utils
+namespace xloc::utility
 {
     [[nodiscard]] bool supports_color() noexcept;
 }

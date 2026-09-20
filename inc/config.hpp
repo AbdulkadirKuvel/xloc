@@ -10,7 +10,7 @@
 
 namespace fs = std::filesystem;
 
-namespace config_reader
+namespace xloc::config
 {
     struct JsonDTO
     {
@@ -19,7 +19,7 @@ namespace config_reader
         std::vector<std::string> whitelist;
     };
 
-    void apply_json_config(const fs::path &, types::Config &);
+    void apply_json_config(const fs::path &, xloc::types::Config &);
 }
 
 #endif

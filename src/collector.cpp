@@ -9,25 +9,25 @@
 #include <iostream>
 #include <print>
 
-namespace collector
+namespace xloc::analysis
 {
     router get_analyzer(const std::string ext)
     {
         if (c_style.contains(ext))
-            return lexer::file_analyzer_c;
+            return xloc::lexer::file_analyzer_c;
 
         if (py_style.contains(ext))
-            return lexer::file_analyzer_py;
+            return xloc::lexer::file_analyzer_py;
 
         if (xml_style.contains(ext))
-            return lexer::file_analyzer_xml;
+            return xloc::lexer::file_analyzer_xml;
 
         return nullptr;
     }
 
-    std::map<std::string, types::FileStats> gather_files_stats(std::span<const fs::path> files, const types::Config &config)
+    std::map<std::string, xloc::types::FileStats> gather_files_stats(std::span<const fs::path> files, const xloc::types::Config &config)
     {
-        std::unordered_map<std::string, types::FileStats> gathered_stats;
+        std::unordered_map<std::string, xloc::types::FileStats> gathered_stats;
 
         for (const auto &filepath : files)
         {
@@ -51,7 +51,7 @@ namespace collector
                     continue;
                 }
 
-                types::FileStats file_stats;
+                xloc::types::FileStats file_stats;
                 file_stats.file_count = 1;
 
                 lexer_function(mmap_file.data(), file_stats);
@@ -60,16 +60,16 @@ namespace collector
             }
             catch (const std::system_error &error)
             {
-                formatter::print_warning(
-                    types::Error{
+                xloc::fmt::print_warning(
+                    xloc::types::Error{
                         .title = "IO Error",
                         .message = std::format("File {} skipped due to io error.\n Code: {}", filepath.string(), error.code().value())},
                     config);
             }
             catch (...)
             {
-                formatter::print_error(
-                    types::Error{
+                xloc::fmt::print_error(
+                    xloc::types::Error{
                         .title = "Lexer Error",
                         .message = std::format("Lexer exception on file: {}.", filepath.string())},
                     config);

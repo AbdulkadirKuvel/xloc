@@ -47,13 +47,13 @@ const std::unordered_set<std::string> xml_style = {
 
 const std::string ruby = ".rb";
 
-namespace collector
+namespace xloc::analysis
 {
-    using router = void (*)(std::string_view, types::FileStats &);
+    using router = void (*)(std::string_view, xloc::types::FileStats &);
 
     router get_analyzer(const std::string);
 
-    [[nodiscard]] std::map<std::string, types::FileStats> gather_files_stats(std::span<const fs::path>, const types::Config&);
+    [[nodiscard]] std::map<std::string, xloc::types::FileStats> gather_files_stats(std::span<const fs::path>, const xloc::types::Config&);
 
 }
 

@@ -10,37 +10,37 @@
 
 int main(int argc, char *argv[])
 {
-    const auto &config = parser::parse_commands(argc, argv); 
+    const auto &config = xloc::parser::parse_commands(argc, argv); 
 
     if (config.help_requested)
     {
-        formatter::print_help();
+        xloc::fmt::print_help();
         return 0;
     }
     else if (config.version_requested)
     {
-        formatter::print_version(config);
+        xloc::fmt::print_version(config);
         return 0;
     }
     else if (config.error_requested)
     {
-        formatter::print_error(config.error_info, config);
+        xloc::fmt::print_error(config.error_info, config);
         return 0;
     }
 
     // clang-format off
-    const auto paths = benchmark::measure_step("scanning files", config, [&]
+    const auto paths = xloc::benchmark::measure_step("scanning files", config, [&]
     { 
-        return scanner::scan(config); 
+        return xloc::scanner::scan(config); 
     });
     
-    const auto stats = benchmark::measure_step("analyzing files", config, [&]
+    const auto stats = xloc::benchmark::measure_step("analyzing files", config, [&]
     {
-        return collector::gather_files_stats(paths, config);
+        return xloc::analysis::gather_files_stats(paths, config);
     });
     // clang-format on
 
-    formatter::report_files_stats(stats, config);
+    xloc::fmt::report_files_stats(stats, config);
 
     return 0;
 }

@@ -6,7 +6,7 @@
 
 using json = nlohmann::json;
 
-namespace config_reader
+namespace xloc::config
 {
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(JsonDTO, recursive, blacklist, whitelist);
     
@@ -25,10 +25,10 @@ namespace config_reader
             dto.whitelist = j["whitelist"].get<std::vector<std::string>>();
     }
     
-    /// @brief reads the config file and turns it into usable types::config.
+    /// @brief reads the config file and turns it into usable xloc::types::Config.
     /// @param filepath path of the config file.
-    /// @param app_config types::config
-    void apply_json_config(const fs::path &filepath, types::Config &app_config)
+    /// @param app_config xloc::types::Config
+    void apply_json_config(const fs::path &filepath, xloc::types::Config &app_config)
     {
         std::ifstream file(filepath);
 

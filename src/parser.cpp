@@ -5,11 +5,11 @@
 #include <format>
 #include <ranges>
 
-namespace parser
+namespace xloc::parser
 {
-    types::Config parse_commands(int argc, char *argv[])
+    xloc::types::Config parse_commands(int argc, char *argv[])
     {
-        types::Config config;
+        xloc::types::Config config;
 
         for (int i = 1; i < argc; ++i)
         {
@@ -35,7 +35,7 @@ namespace parser
                 }
 
                 fs::path config_path = argv[i + 1];
-                config_reader::apply_json_config(config_path, config);
+                xloc::config::apply_json_config(config_path, config);
 
                 if (config.error_requested)
                     return config;
@@ -44,7 +44,7 @@ namespace parser
             }
         }
 
-        config.enable_color = utils::supports_color();
+        config.enable_color = xloc::utility::supports_color();
 
         for (int i = 1; i < argc; ++i)
         {

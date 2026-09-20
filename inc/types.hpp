@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-namespace types
+namespace xloc::types
 {
     constexpr std::string_view version = "v1.1";
     struct Error

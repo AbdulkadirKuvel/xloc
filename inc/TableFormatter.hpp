@@ -7,7 +7,7 @@ constexpr std::string_view str = "│ {:<10} │ {:>7} │ {:>9} │ {:>9} │ {
 class TableFormatter : public IReportFormatter
 {
 public:
-    void format(std::ostream &os, const std::map<std::string, types::FileStats> &stats) const override
+    void format(std::ostream &os, const std::map<std::string, xloc::types::FileStats> &stats) const override
     {
         constexpr std::string_view upmost_border = "┌────────────┬─────────┬───────────┬───────────┬───────────┬───────────┐";
         constexpr std::string_view middle_border = "├────────────┼─────────┼───────────┼───────────┼───────────┼───────────┤";
@@ -17,7 +17,7 @@ public:
         std::println(os, str, "Language", "Files", "Lines", "Code", "Comment", "Blank");
         std::println(os, "{}", middle_border);
 
-        types::FileStats total{};
+        xloc::types::FileStats total{};
 
         for (auto &[ext, stats] : stats)
         {

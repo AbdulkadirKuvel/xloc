@@ -2,7 +2,7 @@
 #include <string_view>
 #include <cstddef>
 
-namespace lexer
+namespace xloc::lexer
 {
     namespace detail
     {
@@ -12,7 +12,7 @@ namespace lexer
         }
     } // namespace detail
 
-    void file_analyzer_c(std::string_view content, types::FileStats &stats) noexcept
+    void file_analyzer_c(std::string_view content, xloc::types::FileStats &stats) noexcept
     {
         if (content.empty()) return;
 
@@ -180,7 +180,7 @@ namespace lexer
         }
     }
 
-    void file_analyzer_py(std::string_view content, types::FileStats &stats) noexcept
+    void file_analyzer_py(std::string_view content, xloc::types::FileStats &stats) noexcept
     {
         if (content.empty()) return;
 
@@ -308,7 +308,7 @@ namespace lexer
         }
     }
 
-    void file_analyzer_xml(std::string_view content, types::FileStats &stats) noexcept
+    void file_analyzer_xml(std::string_view content, xloc::types::FileStats &stats) noexcept
     {
         if (content.empty()) return;
 
@@ -426,4 +426,4 @@ namespace lexer
         }
     }
 
-} // namespace lexer
+} // namespace xloc::lexer

@@ -11,9 +11,9 @@
 
 namespace fs = std::filesystem;
 
-namespace parser
+namespace xloc::parser
 {
-    [[nodiscard]] types::Config parse_commands(int argc, char *argv[]);
+    [[nodiscard]] xloc::types::Config parse_commands(int argc, char *argv[]);
 }
 
 #endif

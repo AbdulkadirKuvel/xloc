@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 
 #include <string_view>
 
-namespace color
+namespace xloc::ansi
 {
     // Reset the color
     constexpr std::string_view reset = "\033[0m";
@@ -31,14 +31,14 @@ namespace color
     constexpr std::string_view bold_cyan = "\033[1;36m";
 }
 
-namespace formatter
+namespace xloc::fmt
 {
-    void report_files_stats(const std::map<std::string, types::FileStats> &, const types::Config &);
+    void report_files_stats(const std::map<std::string, xloc::types::FileStats> &, const xloc::types::Config &);
     void print_help();
-    void print_version(const types::Config &);
-    void print_error(types::Error, const types::Config &);
-    void print_warning(types::Error, const types::Config &);
-    void print_info(std::string, const types::Config &);
+    void print_version(const xloc::types::Config &);
+    void print_error(xloc::types::Error, const xloc::types::Config &);
+    void print_warning(xloc::types::Error, const xloc::types::Config &);
+    void print_info(std::string, const xloc::types::Config &);
 }
 
 #endif

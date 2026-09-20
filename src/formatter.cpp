@@ -10,7 +10,7 @@
 #include <fstream>
 #include <map>
 
-namespace formatter
+namespace xloc::fmt
 {
     namespace
     {
@@ -24,7 +24,7 @@ namespace formatter
         }
     }
 
-    void report_files_stats(const std::map<std::string, types::FileStats> &stats, const types::Config &config)
+    void report_files_stats(const std::map<std::string, xloc::types::FileStats> &stats, const xloc::types::Config &config)
     {
         std::unique_ptr<IReportFormatter> report_formatter;
 
@@ -46,10 +46,11 @@ namespace formatter
             }
             else
             {
-                types::Error error;
-                error.title = "File Error";
-                error.message = "Could not create the output file.";
-                // TODO
+                xloc::fmt::print_error(
+                    xloc::types::Error{
+                        .title = "Output Error",
+                        .message = "Could not create the output file."},
+                    config);
             }
             file.close();
         }
@@ -72,6 +73,8 @@ namespace formatter
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -n │ --no-color    │ none         │ do not show color for output  │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
+        std::println("│ -q │ --quiet       │ none         │ disable execution information │");
+        std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -r │ --recursive   │ none         │ recursive search              │");
         std::println("├────┼───────────────┼──────────────┼───────────────────────────────┤");
         std::println("│ -j │ --json        │ none         │ format stats as json          │");
@@ -84,43 +87,43 @@ namespace formatter
         std::println("└────┴───────────────┴──────────────┴───────────────────────────────┘");
     }
 
-    void print_version(const types::Config &config)
+    void print_version(const xloc::types::Config &config)
     {
-        const auto yellow = color_code(color::bold_yellow, config.enable_color);
-        const auto white = color_code(color::bold_white, config.enable_color);
-        const auto reset = color_code(color::reset, config.enable_color);
+        const auto yellow = color_code(xloc::ansi::bold_yellow, config.enable_color);
+        const auto white = color_code(xloc::ansi::bold_white, config.enable_color);
+        const auto reset = color_code(xloc::ansi::reset, config.enable_color);
 
-        std::println("{}xloc{} version: {}{}{}", yellow, reset, white, types::version, reset);
+        std::println("{}xloc{} version: {}{}{}", yellow, reset, white, xloc::types::version, reset);
     }
 
-    void print_error(types::Error error, const types::Config &config)
+    void print_error(xloc::types::Error error, const xloc::types::Config &config)
     {
-        const auto bold_red = color_code(color::bold_red, config.enable_color);
-        const auto red = color_code(color::red, config.enable_color);
-        const auto reset = color_code(color::reset, config.enable_color);
+        const auto bold_red = color_code(xloc::ansi::bold_red, config.enable_color);
+        const auto red = color_code(xloc::ansi::red, config.enable_color);
+        const auto reset = color_code(xloc::ansi::reset, config.enable_color);
 
         std::println("{}{}{}", bold_red, error.title, reset);
         std::println("{}{}{}", red, error.message, reset);
     }
 
-    void print_warning(types::Error error, const types::Config &config)
+    void print_warning(xloc::types::Error error, const xloc::types::Config &config)
     {
-        const auto bold_yellow = color_code(color::bold_white, config.enable_color);
-        const auto yellow = color_code(color::yellow, config.enable_color);
-        const auto reset = color_code(color::reset, config.enable_color);
+        const auto bold_yellow = color_code(xloc::ansi::bold_white, config.enable_color);
+        const auto yellow = color_code(xloc::ansi::yellow, config.enable_color);
+        const auto reset = color_code(xloc::ansi::reset, config.enable_color);
 
         std::println("{}{}{}", bold_yellow, error.title, reset);
         std::println("{}{}{}", yellow, error.message, reset);
     }
 
-    void print_info(std::string message, const types::Config &config)
+    void print_info(std::string message, const xloc::types::Config &config)
     {
         if (config.quiet)
         {
             return;
         }
-        const auto blue = color_code(color::blue, config.enable_color);
-        const auto reset = color_code(color::reset, config.enable_color);
+        const auto blue = color_code(xloc::ansi::blue, config.enable_color);
+        const auto reset = color_code(xloc::ansi::reset, config.enable_color);
 
         std::println("{}{}{}", blue, message, reset);
     }
