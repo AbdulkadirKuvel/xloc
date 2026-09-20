@@ -6,14 +6,12 @@ namespace lexer
 {
     namespace detail
     {
-        // Boşluk karakteri kontrolü (ASCII inline optimization)
         constexpr bool is_space(char c) noexcept
         {
             return c == ' ' || c == '\t' || c == '\r';
         }
-    }
+    } // namespace detail
 
-    /// @brief C-Style diller (C, C++, Java, JS, C#, Go, Rust) için tek geçişli (Single-Pass) analizör.
     void file_analyzer_c(std::string_view content, types::FileStats &stats) noexcept
     {
         if (content.empty()) return;
@@ -182,7 +180,6 @@ namespace lexer
         }
     }
 
-    /// @brief Python dosyaları için tek geçişli analizör.
     void file_analyzer_py(std::string_view content, types::FileStats &stats) noexcept
     {
         if (content.empty()) return;
@@ -311,7 +308,6 @@ namespace lexer
         }
     }
 
-    /// @brief XML / HTML dosyaları için tek geçişli analizör.
     void file_analyzer_xml(std::string_view content, types::FileStats &stats) noexcept
     {
         if (content.empty()) return;
