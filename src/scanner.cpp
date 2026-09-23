@@ -126,7 +126,7 @@ namespace xloc::scanner
 
             if (should_ignore_entry(path, config))
             {
-                if (entry.is_directory())
+                if (entry.is_directory(ec))
                 {
                     it.disable_recursion_pending();
                 }

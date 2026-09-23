@@ -34,8 +34,10 @@ namespace xloc::config
 
         if (!file.is_open())
         {
-            std::println("[Error] Could not open config file: {}", filepath.generic_string());
-            exit(EXIT_FAILURE);
+            app_config.error_requested = true;
+            app_config.error_info.title = "Unable to Open File";
+            app_config.error_info.message = std::format("Could not open config file: {}", filepath.string());
+            return;
         }
 
         try

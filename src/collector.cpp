@@ -66,7 +66,7 @@ namespace xloc::analysis
                         .message = std::format("File {} skipped due to io error.\n Code: {}", filepath.string(), error.code().value())},
                     config);
             }
-            catch (...)
+            catch (...) // TODO: Maybe delete this?
             {
                 xloc::fmt::print_error(
                     xloc::types::Error{

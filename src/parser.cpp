@@ -84,6 +84,10 @@ namespace xloc::parser
             }
             else if (!arg.starts_with('-'))
             {
+                // Check whether the path has been modified
+                if (config.path != ".")
+                    continue; // no multiple paths at once for now.
+                
                 fs::path target(arg);
                 if (fs::is_regular_file(target))
                 {
