@@ -22,7 +22,8 @@ namespace xloc::types
             "makefile", "Makefile"};
 
         std::unordered_set<std::string> blacklist = {
-            ".git", "bin", "out", "obj", "lib", "node_modules", ".vs", "venv", ".venv", "__pycache__"};
+            ".git", "bin", "out", "obj", "lib", "node_modules", ".vs", "venv", ".venv", "__pycache__",
+            "System Volume Information", "$RECYCLE.BIN"};
 
         Error error_info;
 
