@@ -137,7 +137,7 @@ A configuration file can only be a json file.
 - [ ] Implement Multithreading.
     - Improves speed.
 
-- [ ] Implement Memory maps.
+- [x] Implement Memory maps.
     - Improves speed.
     - Allows reading bigger sized files.
 
@@ -148,7 +148,7 @@ A configuration file can only be a json file.
     - Lets user have more control.
 
 - [x] Implement Benchmarking
-    - Show how much time consumed for each step.
+    - Shows how much time consumed for each step.
 
 - [x] Realize C style single line comments can be multiline with the use of "\\", for example:
 
@@ -163,4 +163,4 @@ int main() {
 }
 
 ```
-- [ ] Fix the thing above.
+- [x] Fix the thing above.
