@@ -1,8 +1,11 @@
 #include <scanner.hpp>
+#include <formatter.hpp>
 #include <string>
 #include <print>
 #include <unordered_set>
-#include <formatter.hpp>
+#include <algorithm>
+#include <cctype>
+
 namespace xloc::scanner
 {
     namespace internal
@@ -12,8 +15,8 @@ namespace xloc::scanner
             return list.find(item) != list.end();
         }
     }
-    
-    std::vector<fs::path> scan(xloc::types::Config config)
+
+    std::vector<fs::path> scan(const xloc::types::Config &config)
     {
         if (config.single_file)
         {
@@ -60,17 +63,17 @@ namespace xloc::scanner
             if (!entry_ec && is_reg)
             {
                 const auto &current_path = entry.path();
-                const auto ext = current_path.extension().string();
-                const auto filename = current_path.filename().string();
+                auto ext = current_path.extension().string();
+                std::ranges::transform(ext, ext.begin(), [](unsigned char c)
+                                       { return std::tolower(c); });
 
-                if (it->is_regular_file(ec))
+                const auto &filename = current_path.filename().string();
+
+                if (!internal::in_list(filename, config.blacklist) &&
+                    (internal::in_list(ext, config.whitelist) ||
+                     internal::in_list(filename, config.whitelist)))
                 {
-                    if (!internal::in_list(filename, config.blacklist) &&
-                        (internal::in_list(ext, config.whitelist) ||
-                         internal::in_list(filename, config.whitelist)))
-                    {
-                        paths.push_back(current_path);
-                    }
+                    paths.push_back(current_path);
                 }
             }
 
@@ -89,9 +92,8 @@ namespace xloc::scanner
         if (filename.empty())
             return false;
 
-        if (filename.front() == '.' ||
-            filename == "$RECYCLE.BIN" ||
-            filename == "System Volume Information")
+        if (fs::is_directory(path) &&
+            (filename.front() == '.'))
         {
             return true;
         }
@@ -140,12 +142,19 @@ namespace xloc::scanner
             if (entry.is_regular_file(ec))
             {
                 const auto &filename = path.filename().string();
-                const auto &ext = path.extension().string();
+                auto ext = path.extension().string();
+                std::ranges::transform(ext, ext.begin(), [](unsigned char c)
+                                       { return std::tolower(c); });
 
-                if ((internal::in_list(filename, config.whitelist) ||
-                     internal::in_list(ext, config.whitelist)))
+                if (internal::in_list(filename, config.whitelist) ||
+                    internal::in_list(ext, config.whitelist))
                 {
                     paths.push_back(path);
+                    // std::println("Passed File: {}", filename);
+                }
+                else
+                {
+                    // std::println("Blocked File: {}", filename);
                 }
             }
 

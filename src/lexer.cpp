@@ -1,6 +1,7 @@
 #include <lexer.hpp>
 #include <string_view>
 #include <cstddef>
+#include <print>
 
 namespace xloc::lexer
 {
@@ -14,15 +15,17 @@ namespace xloc::lexer
 
     void file_analyzer_c(std::string_view content, xloc::types::FileStats &stats) noexcept
     {
-        if (content.empty()) return;
+        if (content.empty())
+            return;
 
-        const char* const ptr = content.data();
+        const char *const ptr = content.data();
         const std::size_t len = content.size();
 
         bool has_code = false;
         bool has_comment = false;
-        
-        enum class State : std::uint8_t {
+
+        enum class State : std::uint8_t
+        {
             IN_CODE,
             IN_SINGLE_COMMENT,
             IN_MULTI_COMMENT,
@@ -36,7 +39,6 @@ namespace xloc::lexer
         {
             const char c = ptr[i];
 
-            // Satır Sonu (Line Ending) İşleme
             if (c == '\n')
             {
                 stats.total_line++;
@@ -54,17 +56,25 @@ namespace xloc::lexer
                     stats.comment_line++;
                 }
 
-                // Bir sonraki satır için durum sıfırlama
                 has_code = false;
-                
+
                 if (state == State::IN_SINGLE_COMMENT)
                 {
-                    state = State::IN_CODE;
-                    has_comment = false;
+                    // // TODO: Beware this can be multiline with backslash
+                    // Go back 2 numbers to find '\'
+                    if (!(ptr[i - 2] == '\\'))
+                    {
+                        state = State::IN_CODE;
+                        has_comment = false;
+                    }
+                    else
+                    {
+                        state = State::IN_SINGLE_COMMENT;
+                        has_comment = true;
+                    }
                 }
                 else if (state == State::IN_MULTI_COMMENT)
                 {
-                    // Çok satırlı yorum devam ediyorsa sonraki satır da yorum sayılır
                     has_comment = true;
                 }
                 else
@@ -75,12 +85,12 @@ namespace xloc::lexer
                 continue;
             }
 
-            // Durum Makinesi (State Machine)
             switch (state)
             {
             case State::IN_CODE:
             {
-                if (detail::is_space(c)) continue;
+                if (detail::is_space(c))
+                    continue;
 
                 if (c == '/' && (i + 1 < len))
                 {
@@ -89,13 +99,13 @@ namespace xloc::lexer
                     {
                         has_comment = true;
                         state = State::IN_SINGLE_COMMENT;
-                        ++i; // '/' karakterini atla
+                        ++i;
                     }
                     else if (next == '*')
                     {
                         has_comment = true;
                         state = State::IN_MULTI_COMMENT;
-                        ++i; // '*' karakterini atla
+                        ++i;
                     }
                     else
                     {
@@ -119,7 +129,6 @@ namespace xloc::lexer
                 break;
             }
             case State::IN_SINGLE_COMMENT:
-                // Satır sonuna kadar tüm karakterler yutulur
                 break;
 
             case State::IN_MULTI_COMMENT:
@@ -128,7 +137,7 @@ namespace xloc::lexer
                 if (c == '*' && (i + 1 < len) && ptr[i + 1] == '/')
                 {
                     state = State::IN_CODE;
-                    ++i; // '/' karakterini atla
+                    ++i;
                 }
                 break;
             }
@@ -137,7 +146,7 @@ namespace xloc::lexer
                 has_code = true;
                 if (c == '\\')
                 {
-                    ++i; // Escape karakterini yut (\' engellemesi)
+                    ++i;
                 }
                 else if (c == '\'')
                 {
@@ -150,7 +159,7 @@ namespace xloc::lexer
                 has_code = true;
                 if (c == '\\')
                 {
-                    ++i; // Escape karakterini yut (\" engellemesi)
+                    ++i;
                 }
                 else if (c == '"')
                 {
@@ -161,7 +170,6 @@ namespace xloc::lexer
             }
         }
 
-        // Son satırda '\n' olmaması durumu (EOF Handling)
         if (len > 0)
         {
             stats.total_line++;
@@ -182,15 +190,17 @@ namespace xloc::lexer
 
     void file_analyzer_py(std::string_view content, xloc::types::FileStats &stats) noexcept
     {
-        if (content.empty()) return;
+        if (content.empty())
+            return;
 
-        const char* const ptr = content.data();
+        const char *const ptr = content.data();
         const std::size_t len = content.size();
 
         bool has_code = false;
         bool has_comment = false;
 
-        enum class State : std::uint8_t {
+        enum class State : std::uint8_t
+        {
             IN_CODE,
             IN_SINGLE_COMMENT,
             IN_SINGLE_STRING,
@@ -235,7 +245,8 @@ namespace xloc::lexer
             {
             case State::IN_CODE:
             {
-                if (detail::is_space(c)) continue;
+                if (detail::is_space(c))
+                    continue;
 
                 if (c == '#')
                 {
@@ -310,15 +321,17 @@ namespace xloc::lexer
 
     void file_analyzer_xml(std::string_view content, xloc::types::FileStats &stats) noexcept
     {
-        if (content.empty()) return;
+        if (content.empty())
+            return;
 
-        const char* const ptr = content.data();
+        const char *const ptr = content.data();
         const std::size_t len = content.size();
 
         bool has_code = false;
         bool has_comment = false;
 
-        enum class State : std::uint8_t {
+        enum class State : std::uint8_t
+        {
             IN_CODE,
             IN_MULTI_COMMENT,
             IN_SINGLE_STRING,
@@ -358,7 +371,8 @@ namespace xloc::lexer
             {
             case State::IN_CODE:
             {
-                if (detail::is_space(c)) continue;
+                if (detail::is_space(c))
+                    continue;
 
                 if (c == '<' && (i + 3 < len) &&
                     ptr[i + 1] == '!' && ptr[i + 2] == '-' && ptr[i + 3] == '-')
@@ -396,13 +410,15 @@ namespace xloc::lexer
             case State::IN_SINGLE_STRING:
             {
                 has_code = true;
-                if (c == '\'') state = State::IN_CODE;
+                if (c == '\'')
+                    state = State::IN_CODE;
                 break;
             }
             case State::IN_DOUBLE_STRING:
             {
                 has_code = true;
-                if (c == '"') state = State::IN_CODE;
+                if (c == '"')
+                    state = State::IN_CODE;
                 break;
             }
             }

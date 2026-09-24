@@ -1,9 +1,11 @@
 #include <collector.hpp>
 #include <formatter.hpp>
-#include <format>
 #include <lexer.hpp>
 #include <MemoryMappedFile.hpp>
 #include <unordered_set>
+#include <algorithm>
+#include <cctype>
+#include <format>
 #include <map>
 #include <unordered_map>
 #include <iostream>
@@ -11,18 +13,14 @@
 
 namespace xloc::analysis
 {
-    router get_analyzer(const std::string ext)
+    router get_analyzer(std::string_view ext) noexcept
     {
-        if (c_style.contains(ext))
-            return xloc::lexer::file_analyzer_c;
-
-        if (py_style.contains(ext))
-            return xloc::lexer::file_analyzer_py;
-
-        if (xml_style.contains(ext))
-            return xloc::lexer::file_analyzer_xml;
-
-        return nullptr;
+        if (analyzers.contains(ext))
+        {
+            return analyzers.at(ext);
+        }
+        else
+            return nullptr;
     }
 
     std::map<std::string, xloc::types::FileStats> gather_files_stats(std::span<const fs::path> files, const xloc::types::Config &config)
@@ -31,11 +29,13 @@ namespace xloc::analysis
 
         for (const auto &filepath : files)
         {
-            const auto ext_path = filepath.extension();
+            auto ext_path = filepath.extension();
             if (ext_path.empty())
-                continue;
+                ext_path = filepath.filename();
 
             std::string ext = ext_path.string();
+            std::ranges::transform(ext, ext.begin(), [](unsigned char c)
+                                   { return std::tolower(c); });
             auto lexer_function = get_analyzer(ext);
 
             if (!lexer_function)
