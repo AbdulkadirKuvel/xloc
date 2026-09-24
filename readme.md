@@ -7,7 +7,7 @@ A high-performance, modern C++23 Command Line Interface (CLI) utility engineered
 
 Built with **systems programming** principles in mind, **xloc** leverages C++23 features to deliver maximum performance through zero-cost abstractions, memory safety, and highly optimized I/O operations.
 
-Note: xloc is currently in active development. While the core parsing engine is stable and functional, the feature set is being continuously expanded
+Note: xloc is currently in active development. While the core parsing engine is stable and functional, the feature set is being continuously expanded.
 
 ---
 
@@ -137,7 +137,7 @@ A configuration file can only be a json file.
 - [ ] Implement Multithreading.
     - Improves speed.
 
-- [ ] Implement Memory maps.
+- [x] Implement Memory maps.
     - Improves speed.
     - Allows reading bigger sized files.
 
@@ -150,7 +150,7 @@ A configuration file can only be a json file.
 - [x] Implement Benchmarking
     - Show how much time consumed for each step.
 
-- [x] Realize C style single line comments can be multiline with the use of "\\", for example:
+- [x] Fix C style single line comments can be multiline with the use of "\\", for example:
 
 ```C
 int main() {
@@ -163,4 +163,3 @@ int main() {
 }
 
 ```
-- [ ] Fix the thing above.
