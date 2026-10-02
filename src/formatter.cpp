@@ -102,18 +102,18 @@ namespace xloc::fmt
         const auto red = color_code(xloc::ansi::red, config.enable_color);
         const auto reset = color_code(xloc::ansi::reset, config.enable_color);
 
-        std::println("{}{}{}", bold_red, error.title, reset);
-        std::println("{}{}{}", red, error.message, reset);
+        std::println(std::cerr, "{}{}{}", bold_red, error.title, reset);
+        std::println(std::cerr, "{}{}{}", red, error.message, reset);
     }
 
     void print_warning(xloc::types::Error error, const xloc::types::Config &config)
     {
-        const auto bold_yellow = color_code(xloc::ansi::bold_white, config.enable_color);
+        const auto bold_yellow = color_code(xloc::ansi::bold_yellow, config.enable_color);
         const auto yellow = color_code(xloc::ansi::yellow, config.enable_color);
         const auto reset = color_code(xloc::ansi::reset, config.enable_color);
 
-        std::println("{}{}{}", bold_yellow, error.title, reset);
-        std::println("{}{}{}", yellow, error.message, reset);
+        std::println(std::cerr, "{}{}{}", bold_yellow, error.title, reset);
+        std::println(std::cerr, "{}{}{}", yellow, error.message, reset);
     }
 
     void print_info(std::string message, const xloc::types::Config &config)
