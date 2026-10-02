@@ -2,25 +2,65 @@
 #include <formatter.hpp>
 #include <lexer.hpp>
 #include <MemoryMappedFile.hpp>
-#include <unordered_set>
 #include <algorithm>
 #include <cctype>
 #include <format>
-#include <map>
+#include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <iostream>
 #include <print>
+#include <string>
+#include <string_view>
 
 namespace xloc::analysis
 {
-    router get_analyzer(std::string_view ext) noexcept
+
+    constexpr std::uint64_t hash_ext64(std::string_view ext) noexcept
     {
-        if (analyzers.contains(ext))
-        {
-            return analyzers.at(ext);
-        }
-        else
+        std::uint64_t val = 0;
+        const std::size_t len = ext.size() > 8 ? 8 : ext.size();
+        for (std::size_t i = 0; i < len; ++i)
+            val = (val << 8) | static_cast<std::uint8_t>(ext[i]);
+
+        return val;
+    }
+
+    inline router get_analyzer(std::string_view ext) noexcept
+    {
+        if (ext.empty() || ext.size() > 5)
             return nullptr;
+
+        switch (hash_ext64(ext))
+        {
+        case hash_ext64(".c"):
+        case hash_ext64(".cpp"):
+        case hash_ext64(".tcc"):
+        case hash_ext64(".txx"):
+        case hash_ext64(".tpp"):
+        case hash_ext64(".h"):
+        case hash_ext64(".hpp"):
+        case hash_ext64(".cc"):
+        case hash_ext64(".cs"):
+        case hash_ext64(".js"):
+        case hash_ext64(".ts"):
+        case hash_ext64(".go"):
+        case hash_ext64(".rs"):
+            return xloc::lexer::file_analyzer_c;
+            
+        case hash_ext64(".py"):
+        case hash_ext64(".pyx"):
+        case hash_ext64(".pyw"):
+            return xloc::lexer::file_analyzer_py;
+
+        case hash_ext64(".xml"):
+        case hash_ext64(".html"):
+        case hash_ext64(".svg"):
+            return xloc::lexer::file_analyzer_xml;
+
+        default:
+            return nullptr;
+        }
     }
 
     std::map<std::string, xloc::types::FileStats> gather_files_stats(std::span<const fs::path> files, const xloc::types::Config &config)
